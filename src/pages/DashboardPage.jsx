@@ -1,9 +1,6 @@
-const lessons = [
-  { day: '14', month: 'Jun', type: 'Basic Driving — Session 3', instructor: 'Instructor: Ram Bahadur', status: 'confirmed' },
-  { day: '16', month: 'Jun', type: 'Theory Class — Traffic Rules', instructor: 'Instructor: Sita Devi', status: 'confirmed' },
-  { day: '19', month: 'Jun', type: 'Basic Driving — Session 4', instructor: 'Instructor: Ram Bahadur', status: 'pending' },
-  { day: '21', month: 'Jun', type: 'Mock Test Drive', instructor: 'Instructor: Hari Prasad', status: 'pending' },
-];
+import { useEffect, useState } from 'react';
+import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
+import { db, isFirebaseConfigured } from '../firebase/firebaseConfig.js';
 
 const progress = [
   { label: 'Vehicle Controls', pct: 90 },
@@ -21,6 +18,50 @@ const stats = [
 ];
 
 export default function DashboardPage() {
+  const [bookings, setBookings] = useState([]);
+  const [bookingsLoading, setBookingsLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchRecentBookings() {
+      if (!isFirebaseConfigured) {
+        setBookingsLoading(false);
+        return;
+      }
+
+      try {
+        const bookingsCollection = collection(db, 'bookings');
+        const bookingsQuery = query(bookingsCollection, orderBy('createdAt', 'desc'), limit(5));
+        const snapshot = await getDocs(bookingsQuery);
+        const normalized = snapshot.docs.map((doc) => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            student: data.student ?? data.name ?? '',
+            course: data.course ?? '',
+            booking_date: data.booking_date ?? data.date ?? '',
+            time: data.time ?? data.preferredTime ?? '',
+            booking_status: data.booking_status ?? 'Pending',
+            createdAt: data.createdAt,
+          };
+        });
+        setBookings(normalized);
+      } catch (error) {
+        console.error('[DashboardPage] fetchRecentBookings error:', error);
+      } finally {
+        setBookingsLoading(false);
+      }
+    }
+
+    fetchRecentBookings();
+  }, []);
+
+  const lessons = [
+    { day: '14', month: 'Jun', type: 'Basic Driving — Session 3', instructor: 'Instructor: Ram Bahadur', status: 'confirmed' },
+    { day: '16', month: 'Jun', type: 'Theory Class — Traffic Rules', instructor: 'Instructor: Sita Devi', status: 'confirmed' },
+    { day: '19', month: 'Jun', type: 'Basic Driving — Session 4', instructor: 'Instructor: Ram Bahadur', status: 'pending' },
+    { day: '21', month: 'Jun', type: 'Mock Test Drive', instructor: 'Instructor: Hari Prasad', status: 'pending' },
+  ];
+
   return (
     <main className="dashboard">
       <div className="dashboard-header">
@@ -93,6 +134,57 @@ export default function DashboardPage() {
                 </p>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Recent Bookings */}
+        <div className="dash-card" style={{ marginTop: 24 }}>
+          <div className="dash-card-header">
+            <div className="dash-card-title">Recent Bookings</div>
+          </div>
+          <div className="dash-card-body">
+            {bookingsLoading ? (
+              <p style={{ color: 'var(--gray)', fontSize: 14 }}>Loading bookings...</p>
+            ) : bookings.length === 0 ? (
+              <p style={{ color: 'var(--gray)', fontSize: 14 }}>No bookings yet.</p>
+            ) : (
+              <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 600 }}>
+                  <thead>
+                    <tr style={{ borderBottom: '1px solid var(--gray-light)' }}>
+                      <th style={{ padding: '12px', textAlign: 'left', fontSize: 12, fontWeight: 700, color: 'var(--gray)' }}>Student Name</th>
+                      <th style={{ padding: '12px', textAlign: 'left', fontSize: 12, fontWeight: 700, color: 'var(--gray)' }}>Course</th>
+                      <th style={{ padding: '12px', textAlign: 'left', fontSize: 12, fontWeight: 700, color: 'var(--gray)' }}>Date</th>
+                      <th style={{ padding: '12px', textAlign: 'left', fontSize: 12, fontWeight: 700, color: 'var(--gray)' }}>Time</th>
+                      <th style={{ padding: '12px', textAlign: 'left', fontSize: 12, fontWeight: 700, color: 'var(--gray)' }}>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {bookings.map((booking) => (
+                      <tr key={booking.id} style={{ borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
+                        <td style={{ padding: '12px', fontSize: 13, color: 'var(--dark)' }}>{booking.student}</td>
+                        <td style={{ padding: '12px', fontSize: 13, color: 'var(--dark)' }}>{booking.course}</td>
+                        <td style={{ padding: '12px', fontSize: 13, color: 'var(--dark)' }}>{booking.booking_date}</td>
+                        <td style={{ padding: '12px', fontSize: 13, color: 'var(--dark)' }}>{booking.time}</td>
+                        <td style={{ padding: '12px', fontSize: 13 }}>
+                          <span style={{
+                            display: 'inline-block',
+                            padding: '4px 8px',
+                            borderRadius: 3,
+                            fontSize: 11,
+                            fontWeight: 700,
+                            backgroundColor: booking.booking_status === 'Pending' ? 'rgba(255, 193, 7, 0.1)' : booking.booking_status === 'Approved' ? 'rgba(76, 175, 80, 0.1)' : 'rgba(244, 67, 54, 0.1)',
+                            color: booking.booking_status === 'Pending' ? 'var(--yellow-dark)' : booking.booking_status === 'Approved' ? '#4CAF50' : '#F44336'
+                          }}>
+                            {booking.booking_status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </div>
       </div>

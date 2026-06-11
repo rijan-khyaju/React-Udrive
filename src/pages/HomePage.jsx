@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
+import { collection, getDocs } from 'firebase/firestore';
+import { db, isFirebaseConfigured } from '../firebase/firebaseConfig.js';
 import CourseCard from '../components/CourseCard';
 import usePublicCourses from '../hooks/usePublicCourses';
 import { testimonials, whyUs } from '../data';
@@ -47,10 +49,44 @@ export default function HomePage({ setPage }) {
   const [statsActive, setStatsActive] = useState(false);
   const heroRef = useRef(null);
   const { courses, loading, error } = usePublicCourses();
+  const [instructors, setInstructors] = useState([]);
+  const [instructorsLoading, setInstructorsLoading] = useState(true);
+  const [instructorsError, setInstructorsError] = useState(null);
 
   useEffect(() => {
     const timer = setTimeout(() => setStatsActive(true), 400);
     return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    async function fetchInstructors() {
+      if (!isFirebaseConfigured) {
+        setInstructorsError(new Error('Firestore is not configured'));
+        setInstructorsLoading(false);
+        return;
+      }
+
+      try {
+        const instructorsCollection = collection(db, 'instructors');
+        const snapshot = await getDocs(instructorsCollection);
+        const normalized = snapshot.docs.map((doc) => {
+          const raw = doc.data();
+          return {
+            id: doc.id,
+            name: raw.name ?? '',
+            experience: raw.experience ?? '',
+            assignedCourse: raw.assignedCourse ?? raw.assigned_course ?? '',
+          };
+        });
+        setInstructors(normalized);
+      } catch (err) {
+        setInstructorsError(err);
+      } finally {
+        setInstructorsLoading(false);
+      }
+    }
+
+    fetchInstructors();
   }, []);
 
   return (
@@ -154,6 +190,39 @@ export default function HomePage({ setPage }) {
             ) : courses.slice(0, 3).map((c) => (
               <CourseCard key={c.id} course={c} onBook={() => setPage('booking')} />
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* INSTRUCTORS */}
+      <section className="instructors">
+        <div className="container">
+          <div className="courses-header">
+            <div>
+              <span className="section-label">Meet Our Instructors</span>
+              <h2 className="section-title">Our <span>Instructors</span></h2>
+            </div>
+            <button className="btn btn-dark" onClick={() => setPage('booking')}>Book a Trial →</button>
+          </div>
+          <div className="instructors-grid">
+            {instructorsLoading ? (
+              <p style={{ color: 'var(--gray)', textAlign: 'center', width: '100%' }}>Loading instructors...</p>
+            ) : instructorsError ? (
+              <p style={{ color: 'var(--gray)', textAlign: 'center', width: '100%' }}>Unable to load instructors.</p>
+            ) : instructors.length === 0 ? (
+              <p style={{ color: 'var(--gray)', textAlign: 'center', width: '100%' }}>No instructors available at the moment.</p>
+            ) : (
+              instructors.map((instructor) => (
+                <div key={instructor.id} className="instructor-card">
+                  <span className="instructor-card-tag">Expert Instructor</span>
+                  <h3 className="instructor-card-name">{instructor.name}</h3>
+                  <p className="instructor-card-text">{instructor.experience}</p>
+                  <div className="instructor-card-meta">
+                    Assigned Course: <strong>{instructor.assignedCourse || 'N/A'}</strong>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </section>

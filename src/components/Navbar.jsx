@@ -14,6 +14,7 @@ export default function Navbar({ page, setPage }) {
     { label: 'Home', id: 'home' },
     { label: 'Courses', id: 'courses' },
     { label: 'Book a Lesson', id: 'booking' },
+    { label: 'Instructors', id: 'instructors' },
     { label: 'Dashboard', id: 'dashboard' },
   ];
 

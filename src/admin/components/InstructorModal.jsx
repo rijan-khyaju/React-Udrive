@@ -11,7 +11,7 @@ const emptyInstructor = {
   status: 'Active',
 };
 
-export default function InstructorModal({ open, mode, instructor, courses, onClose, onSubmit }) {
+export default function InstructorModal({ open, mode, instructor, courses, formRef, onClose, onSubmit }) {
   const [form, setForm] = useState(emptyInstructor);
   const isView = mode === 'view';
 
@@ -35,7 +35,7 @@ export default function InstructorModal({ open, mode, instructor, courses, onClo
 
   return (
     <Modal open={open} title={isView ? 'Instructor Details' : mode === 'edit' ? 'Edit Instructor' : 'Add Instructor'} onClose={onClose}>
-      <form className="instructor-form" onSubmit={handleSubmit}>
+      <form ref={formRef} className="instructor-form" onSubmit={handleSubmit}>
         <div className="instructor-form-row">
           <label htmlFor="name">Full Name</label>
           <input id="name" name="name" value={form.name} onChange={handleChange} disabled={isView} required />

@@ -1,8 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import StatCard from '../components/StatCard';
 import Modal from '../components/Modal';
 import DataTable from '../components/DataTable';
+import * as courseService from '../services/courseService';
+import * as bookingService from '../services/bookingService';
+import * as studentService from '../services/studentService';
 import { adminStats, adminBookings, adminStudents, adminActivity } from '../data/adminData';
 
 const actionLabels = {
@@ -16,6 +19,44 @@ export default function DashboardPage() {
   const navigate = useNavigate();
   const [activeModal, setActiveModal] = useState(null);
   const [selectedItem, setSelectedItem] = useState(null);
+  const [liveStatValues, setLiveStatValues] = useState({
+    students: null,
+    courses: null,
+    bookings: null,
+    revenue: null,
+  });
+  const [recentBookings, setRecentBookings] = useState(adminBookings);
+  const [recentStudents, setRecentStudents] = useState(adminStudents);
+
+  useEffect(() => {
+    async function fetchLiveStats() {
+      try {
+        const [students, bookings, courses] = await Promise.all([
+          studentService.getStudents(),
+          bookingService.getBookings(),
+          courseService.getCourses(),
+        ]);
+
+        const revenueTotal = courses.reduce((sum, course) => {
+          const price = Number(course.priceNPR ?? course.fee ?? course.price ?? 0);
+          return sum + (Number.isFinite(price) ? price : 0);
+        }, 0);
+
+        setLiveStatValues({
+          students: students.length,
+          courses: courses.length,
+          bookings: bookings.length,
+          revenue: `$${revenueTotal.toLocaleString()}`,
+        });
+        setRecentBookings(bookings.slice(0, 5));
+        setRecentStudents(students.slice(0, 5));
+      } catch (error) {
+        console.error('[DashboardPage] fetchLiveStats error:', error);
+      }
+    }
+
+    fetchLiveStats();
+  }, []);
 
   const handleCardClick = (label) => {
     const pathMap = {
@@ -105,16 +146,36 @@ export default function DashboardPage() {
       </div>
 
       <div className="admin-stats-grid">
-        {adminStats.map((stat) => (
-          <StatCard
-            key={stat.label}
-            icon={stat.icon}
-            label={stat.label}
-            value={stat.value}
-            delta={stat.delta}
-            onClick={() => handleCardClick(stat.label)}
-          />
-        ))}
+        {adminStats.map((stat) => {
+          let value = stat.value;
+
+          if (stat.label === 'Total Students' && liveStatValues.students !== null) {
+            value = String(liveStatValues.students);
+          }
+
+          if (stat.label === 'Total Courses' && liveStatValues.courses !== null) {
+            value = String(liveStatValues.courses);
+          }
+
+          if (stat.label === 'Total Bookings' && liveStatValues.bookings !== null) {
+            value = String(liveStatValues.bookings);
+          }
+
+          if (stat.label === 'Total Revenue' && liveStatValues.revenue !== null) {
+            value = liveStatValues.revenue;
+          }
+
+          return (
+            <StatCard
+              key={stat.label}
+              icon={stat.icon}
+              label={stat.label}
+              value={value}
+              delta={stat.delta}
+              onClick={() => handleCardClick(stat.label)}
+            />
+          );
+        })}
       </div>
 
       <div className="admin-grid admin-grid-2">
@@ -125,7 +186,7 @@ export default function DashboardPage() {
           </div>
           <DataTable
             columns={['Booking ID', 'Student', 'Course', 'Date', 'Status']}
-            rows={adminBookings}
+            rows={recentBookings}
             onRowClick={openBookingDetails}
           />
         </div>
@@ -137,7 +198,7 @@ export default function DashboardPage() {
           </div>
           <DataTable
             columns={['Student ID', 'Name', 'Course', 'Status']}
-            rows={adminStudents}
+            rows={recentStudents}
             onRowClick={openStudentDetails}
           />
         </div>

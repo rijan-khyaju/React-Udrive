@@ -1,17 +1,19 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import DataTable from '../components/DataTable';
 import InstructorModal from '../components/InstructorModal';
-import { adminInstructors, adminCourses } from '../data/adminData';
+import useInstructors from '../hooks/useInstructors';
+import { adminCourses } from '../data/adminData';
 
 const statusOptions = ['All', 'Active', 'On Leave', 'Inactive'];
 
 export default function InstructorsPage() {
-  const [instructors, setInstructors] = useState(adminInstructors);
+  const { instructors, addInstructor, updateInstructor, deleteInstructor } = useInstructors();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState('add');
   const [selectedInstructor, setSelectedInstructor] = useState(null);
+  const formRef = useRef(null);
 
   const filteredInstructors = useMemo(() => {
     return instructors.filter((instructor) => {
@@ -38,32 +40,37 @@ export default function InstructorsPage() {
     setSelectedInstructor(instructor);
     setModalMode('edit');
     setModalOpen(true);
+    setTimeout(() => {
+      formRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 0);
   };
 
   const openViewModal = (instructor) => {
     setSelectedInstructor(instructor);
     setModalMode('view');
     setModalOpen(true);
+    setTimeout(() => {
+      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    }, 0);
   };
 
-  const handleSubmitInstructor = (instructorData) => {
+  const handleSubmitInstructor = async (instructorData) => {
     const normalizedInstructor = {
       ...instructorData,
       contact: instructorData.phone,
     };
 
     if (modalMode === 'edit') {
-      setInstructors((current) => current.map((item) => (item.instructor_id === instructorData.instructor_id ? normalizedInstructor : item)));
+      await updateInstructor(normalizedInstructor);
     } else {
-      const nextId = `IN-${String(instructors.length + 1).padStart(3, '0')}`;
-      setInstructors((current) => [{ ...normalizedInstructor, instructor_id: nextId }, ...current]);
+      await addInstructor(normalizedInstructor);
     }
     setModalOpen(false);
   };
 
   const handleDeleteInstructor = (instructorId) => {
     if (window.confirm('Delete this instructor?')) {
-      setInstructors((current) => current.filter((instructor) => instructor.instructor_id !== instructorId));
+      deleteInstructor(instructorId);
     }
   };
 
@@ -122,6 +129,7 @@ export default function InstructorsPage() {
         mode={modalMode}
         instructor={selectedInstructor}
         courses={adminCourses}
+        formRef={formRef}
         onClose={() => setModalOpen(false)}
         onSubmit={handleSubmitInstructor}
       />

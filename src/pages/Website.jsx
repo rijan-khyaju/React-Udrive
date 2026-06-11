@@ -4,6 +4,7 @@ import Footer from '../components/Footer';
 import HomePage from './HomePage';
 import CoursesPage from './CoursesPage';
 import BookingPage from './BookingPage';
+import InstructorsPage from './InstructorsPage';
 import DashboardPage from './DashboardPage';
 
 export default function Website() {
@@ -18,6 +19,7 @@ export default function Website() {
     home: <HomePage setPage={navigate} />,
     courses: <CoursesPage setPage={navigate} />,
     booking: <BookingPage />,
+    instructors: <InstructorsPage setPage={navigate} />,
     dashboard: <DashboardPage />,
   };
 

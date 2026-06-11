@@ -1,4 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { collection, getDocs } from 'firebase/firestore';
+import { db, isFirebaseConfigured } from '../firebase/firebaseConfig.js';
+import * as bookingService from '../admin/services/bookingService.js';
+import * as studentService from '../admin/services/studentService.js';
 
 const details = [
   { icon: '📍', label: 'Location', val: 'Maharajgunj, Kathmandu' },
@@ -10,12 +14,82 @@ const details = [
 export default function BookingPage() {
   const [form, setForm] = useState({ name: '', email: '', phone: '', course: '', date: '', time: '', message: '' });
   const [submitted, setSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
+  const [courses, setCourses] = useState([]);
+  const [coursesPaused, setCoursesPaused] = useState({});
+
+  useEffect(() => {
+    async function fetchCourses() {
+      if (!isFirebaseConfigured) {
+        return;
+      }
+
+      try {
+        const coursesCollection = collection(db, 'courses');
+        const snapshot = await getDocs(coursesCollection);
+        const activeCourses = [];
+        const pausedMap = {};
+
+        snapshot.docs.forEach((doc) => {
+          const data = doc.data();
+          const courseName = data.name || data.title || 'Untitled';
+          pausedMap[courseName] = data.status === 'Paused' || data.status === 'Inactive';
+          
+          if (data.status !== 'Paused' && data.status !== 'Inactive') {
+            activeCourses.push(courseName);
+          }
+        });
+
+        setCourses(activeCourses);
+        setCoursesPaused(pausedMap);
+      } catch (error) {
+        console.error('[BookingPage] fetchCourses error:', error);
+      }
+    }
+
+    fetchCourses();
+  }, []);
 
   const handle = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
-  const submit = (e) => {
+  const submit = async (e) => {
     e.preventDefault();
-    setSubmitted(true);
+    setSubmitError(null);
+
+    // Check if course is paused
+    if (coursesPaused[form.course]) {
+      setSubmitError('This course is currently paused due to unforeseen circumstances. Please check back soon.');
+      return;
+    }
+
+    const studentData = {
+      name: form.name,
+      email: form.email,
+      phone: form.phone,
+      course: form.course,
+      status: 'Active',
+    };
+
+    const bookingData = {
+      student: form.name,
+      email: form.email,
+      phone: form.phone,
+      course: form.course,
+      booking_date: form.date,
+      time: form.time,
+      message: form.message,
+      booking_status: 'Pending',
+      payment_status: 'Pending',
+    };
+
+    try {
+      await studentService.addStudent(studentData);
+      await bookingService.addBooking(bookingData);
+      setSubmitted(true);
+    } catch (error) {
+      console.error('[BookingPage] submit error:', error);
+      setSubmitError('Unable to submit booking. Please try again.');
+    }
   };
 
   return (
@@ -102,12 +176,13 @@ export default function BookingPage() {
                       <label>Course *</label>
                       <select name="course" value={form.course} onChange={handle} required>
                         <option value="">Select a course</option>
-                        <option>Basic Driving Course</option>
-                        <option>Defensive Driving</option>
-                        <option>License Prep Course</option>
-                        <option>Confidence Refresher</option>
-                        <option>Night & Rain Driving</option>
-                        <option>Fleet Driver Training</option>
+                        {courses.length > 0 ? (
+                          courses.map((courseName) => (
+                            <option key={courseName} value={courseName}>{courseName}</option>
+                          ))
+                        ) : (
+                          <option value="" disabled>Loading courses...</option>
+                        )}
                       </select>
                     </div>
                     <div className="form-row">
@@ -138,6 +213,7 @@ export default function BookingPage() {
                       <label>Message</label>
                       <textarea name="message" value={form.message} onChange={handle} placeholder="Any specific requirements or questions?" />
                     </div>
+                    {submitError && <p className="error-message">{submitError}</p>}
                     <button type="submit" className="form-submit">Confirm Booking →</button>
                   </form>
                 </>

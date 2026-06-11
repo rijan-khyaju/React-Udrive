@@ -24,18 +24,18 @@ export default function useInstructors() {
   }
 
   async function addInstructor(instructorData) {
-    const data = await instructorService.addInstructor(instructorData);
-    setInstructors(data);
+    await instructorService.addInstructor(instructorData);
+    await fetchInstructors();
   }
 
   async function updateInstructor(instructorData) {
-    const data = await instructorService.updateInstructor(instructorData);
-    setInstructors(data);
+    await instructorService.updateInstructor(instructorData);
+    await fetchInstructors();
   }
 
   async function deleteInstructor(instructorId) {
-    const data = await instructorService.deleteInstructor(instructorId);
-    setInstructors(data);
+    await instructorService.deleteInstructor(instructorId);
+    await fetchInstructors();
   }
 
   return {

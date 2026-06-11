@@ -1,12 +1,12 @@
 import { useMemo, useState } from 'react';
 import DataTable from '../components/DataTable';
 import StudentModal from '../components/StudentModal';
-import { adminStudents } from '../data/adminData';
+import useStudents from '../hooks/useStudents';
 
 const statusOptions = ['All', 'Active', 'Pending', 'Inactive'];
 
 export default function StudentsPage() {
-  const [students, setStudents] = useState(adminStudents);
+  const { students, loading, error, addStudent, updateStudent, deleteStudent, refreshStudents } = useStudents();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [courseFilter, setCourseFilter] = useState('All');
@@ -15,7 +15,7 @@ export default function StudentsPage() {
   const [selectedStudent, setSelectedStudent] = useState(null);
 
   const courses = useMemo(() => {
-    const unique = Array.from(new Set(students.map((student) => student.course)));
+    const unique = Array.from(new Set(students.map((student) => student.course).filter(Boolean)));
     return unique.sort();
   }, [students]);
 
@@ -23,11 +23,11 @@ export default function StudentsPage() {
     return students.filter((student) => {
       const query = search.toLowerCase();
       const matchesSearch =
-        student.name.toLowerCase().includes(query) ||
-        student.student_id.toLowerCase().includes(query) ||
-        student.email.toLowerCase().includes(query) ||
-        student.phone.toLowerCase().includes(query) ||
-        student.course.toLowerCase().includes(query);
+        (student.name || '').toLowerCase().includes(query) ||
+        (student.student_id || '').toLowerCase().includes(query) ||
+        (student.email || '').toLowerCase().includes(query) ||
+        (student.phone || '').toLowerCase().includes(query) ||
+        (student.course || '').toLowerCase().includes(query);
 
       const matchesStatus = statusFilter === 'All' || student.status === statusFilter;
       const matchesCourse = courseFilter === 'All' || student.course === courseFilter;
@@ -52,23 +52,31 @@ export default function StudentsPage() {
     setSelectedStudent(student);
     setModalMode('view');
     setModalOpen(true);
+    setTimeout(() => {
+      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    }, 0);
   };
 
-  const handleSubmitStudent = (studentData) => {
-    if (modalMode === 'edit') {
-      setStudents((current) =>
-        current.map((item) => (item.student_id === studentData.student_id ? studentData : item))
-      );
-    } else {
-      const nextId = `ST-${String(students.length + 1).padStart(3, '0')}`;
-      setStudents((current) => [{ ...studentData, student_id: nextId, status: 'Active' }, ...current]);
+  const handleSubmitStudent = async (studentData) => {
+    try {
+      if (modalMode === 'edit') {
+        await updateStudent(studentData);
+      } else {
+        await addStudent(studentData);
+      }
+      setModalOpen(false);
+    } catch (err) {
+      console.error('[StudentsPage] handleSubmitStudent error:', err);
     }
-    setModalOpen(false);
   };
 
-  const handleDeleteStudent = (studentId) => {
+  const handleDeleteStudent = async (studentId) => {
     if (window.confirm('Delete this student record?')) {
-      setStudents((current) => current.filter((student) => student.student_id !== studentId));
+      try {
+        await deleteStudent(studentId);
+      } catch (err) {
+        console.error('[StudentsPage] handleDeleteStudent error:', err);
+      }
     }
   };
 
@@ -114,23 +122,40 @@ export default function StudentsPage() {
         </div>
       </div>
 
-      <div className="admin-card admin-card-large">
-        <div className="admin-card-header">
-          <h3>Student roster</h3>
-          <span>{filteredStudents.length} students</span>
+      {loading ? (
+        <div className="admin-card admin-card-large">
+          <div className="admin-card-header">
+            <h3>Student roster</h3>
+          </div>
+          <p>Loading students...</p>
         </div>
-        <DataTable
-          columns={['Student ID', 'Name', 'Email', 'Phone', 'Course', 'Status', 'Actions']}
-          rows={filteredStudents}
-          renderActions={(student) => (
-            <div className="student-actions">
-              <button className="action-btn" type="button" onClick={() => openViewModal(student)}>View</button>
-              <button className="action-btn" type="button" onClick={() => openEditModal(student)}>Edit</button>
-              <button className="action-btn action-delete" type="button" onClick={() => handleDeleteStudent(student.student_id)}>Delete</button>
-            </div>
-          )}
-        />
-      </div>
+      ) : error ? (
+        <div className="admin-card admin-card-large">
+          <div className="admin-card-header">
+            <h3>Student roster</h3>
+          </div>
+          <p className="error-message">{error.message || 'Unable to load students.'}</p>
+          <button className="btn-secondary" type="button" onClick={refreshStudents}>Retry</button>
+        </div>
+      ) : (
+        <div className="admin-card admin-card-large">
+          <div className="admin-card-header">
+            <h3>Student roster</h3>
+            <span>{filteredStudents.length} students</span>
+          </div>
+          <DataTable
+            columns={['Student ID', 'Name', 'Email', 'Phone', 'Course', 'Status', 'Actions']}
+            rows={filteredStudents}
+            renderActions={(student) => (
+              <div className="student-actions">
+                <button className="action-btn" type="button" onClick={() => openViewModal(student)}>View</button>
+                <button className="action-btn" type="button" onClick={() => openEditModal(student)}>Edit</button>
+                <button className="action-btn action-delete" type="button" onClick={() => handleDeleteStudent(student.student_id)}>Delete</button>
+              </div>
+            )}
+          />
+        </div>
+      )}
 
       <StudentModal
         open={modalOpen}

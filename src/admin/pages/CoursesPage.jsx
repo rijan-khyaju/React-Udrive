@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import DataTable from '../components/DataTable';
 import CourseModal from '../components/CourseModal';
 import useCourses from '../hooks/useCourses';
@@ -12,6 +12,7 @@ export default function CoursesPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState('add');
   const [selectedCourse, setSelectedCourse] = useState(null);
+  const formRef = useRef(null);
 
   const filteredCourses = useMemo(() => {
     return courses.filter((course) => {
@@ -36,27 +37,55 @@ export default function CoursesPage() {
     setSelectedCourse(course);
     setModalMode('edit');
     setModalOpen(true);
+    setTimeout(() => {
+      formRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 0);
   };
 
   const openViewModal = (course) => {
     setSelectedCourse(course);
     setModalMode('view');
     setModalOpen(true);
+    setTimeout(() => {
+      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    }, 0);
   };
 
   const handleSubmitCourse = async (courseData) => {
+    console.log('[CoursesPage] Complete formData:', courseData);
+    console.log('[CoursesPage] Fee field value:', { fee: courseData.fee, price: courseData.price, priceNPR: courseData.priceNPR });
+    
+    // Extract numeric value from fee (handle both raw numbers and formatted "Rs. XXXX" strings)
+    let feeValue = courseData.fee;
+    if (typeof feeValue === 'string' && feeValue.includes('Rs.')) {
+      feeValue = feeValue.replace(/[^\d]/g, '');
+    }
+    
     const normalizedCourse = {
       ...courseData,
-      priceNPR: courseData.priceNPR ?? courseData.fee ?? courseData.price ?? '',
+      priceNPR: courseData.priceNPR || feeValue || courseData.price || '',
+      fee: feeValue || courseData.priceNPR || courseData.price || '',
+      price: feeValue || courseData.priceNPR || courseData.price || '',
       course_name: courseData.name,
       students: courseData.students ?? courseData.number_of_students ?? 0,
       number_of_students: courseData.number_of_students ?? courseData.students ?? 0,
     };
 
     if (modalMode === 'edit') {
-      await updateCourse(selectedCourse.course_id, normalizedCourse);
+      const courseId = selectedCourse?.course_id ?? selectedCourse?.id;
+      console.log('[CoursesPage] handleSubmitCourse edit start', { courseId, normalizedCourse });
+      console.log('[CoursesPage] updateCourse payload:', normalizedCourse);
+      try {
+        await updateCourse(courseId, normalizedCourse);
+        console.log('[CoursesPage] handleSubmitCourse edit success', courseId);
+      } catch (error) {
+        console.error('[CoursesPage] handleSubmitCourse edit failure', error);
+        throw error;
+      }
     } else {
+      console.log('[CoursesPage] handleSubmitCourse add start', normalizedCourse);
       await addCourse(normalizedCourse);
+      console.log('[CoursesPage] handleSubmitCourse add success');
     }
 
     await refreshCourses();
@@ -147,6 +176,7 @@ export default function CoursesPage() {
         open={modalOpen}
         mode={modalMode}
         course={selectedCourse}
+        formRef={formRef}
         onClose={() => setModalOpen(false)}
         onSubmit={handleSubmitCourse}
       />

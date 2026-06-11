@@ -446,6 +446,57 @@ ul { list-style: none; }
   grid-template-columns: repeat(3, 1fr);
   gap: 24px;
 }
+.instructors {
+  padding: 96px 0;
+  background: #111316;
+}
+.instructors-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+.instructor-card {
+  background: #161a20;
+  border: 1px solid rgba(240, 192, 0, 0.12);
+  border-radius: 2px;
+  padding: 28px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.instructor-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.2);
+}
+.instructor-card-tag {
+  display: inline-block;
+  background: rgba(240, 192, 0, 0.14);
+  color: var(--yellow);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 6px 12px;
+  border-radius: 2px;
+  margin-bottom: 18px;
+}
+.instructor-card-name {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--white);
+  margin-bottom: 12px;
+}
+.instructor-card-text {
+  color: rgba(255,255,255,0.75);
+  line-height: 1.7;
+  margin-bottom: 18px;
+}
+.instructor-card-meta {
+  color: rgba(255,255,255,0.65);
+  font-size: 14px;
+}
+.instructor-card-meta strong {
+  color: var(--white);
+}
 .course-card {
   background: var(--white);
   border-radius: 2px;
