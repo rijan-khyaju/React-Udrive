@@ -59,6 +59,7 @@ export default function CoursesPage() {
       await addCourse(normalizedCourse);
     }
 
+    await refreshCourses();
     setModalOpen(false);
   };
 

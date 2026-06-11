@@ -17,15 +17,23 @@ function formatPrice(priceNPR) {
 }
 
 function normalizePublicCourse(id, data) {
+  const normalizedTitle = data.name ?? data.title ?? 'Untitled Course';
+  const normalizedDescription = data.description ?? data.desc ?? '';
+  const normalizedPrice = data.priceNPR ?? data.price;
+
   return {
     id,
     tag: data.tag ?? 'General',
-    title: data.name ?? data.title ?? 'Untitled Course',
-    desc: data.description ?? data.desc ?? '',
+    title: normalizedTitle,
+    name: normalizedTitle,
+    desc: normalizedDescription,
+    description: normalizedDescription,
     duration: data.duration ?? 'TBD',
     lessons: data.lessons ?? 'Custom',
-    price: formatPrice(data.priceNPR ?? data.price),
+    price: formatPrice(normalizedPrice),
+    priceNPR: normalizedPrice,
     img: data.imageUrl ?? data.img ?? '',
+    status: data.status ?? 'Active',
   };
 }
 
@@ -34,7 +42,13 @@ export async function getCourses() {
     return fallbackCourses;
   }
 
-  const coursesQuery = query(coursesCollection, orderBy('createdAt', 'desc'));
-  const snapshot = await getDocs(coursesQuery);
-  return snapshot.docs.map((doc) => normalizePublicCourse(doc.id, doc.data()));
+  console.log('[publicCourseService] Collection path: "courses"');
+  console.log('[publicCourseService] Firebase configured:', isFirebaseConfigured);
+  console.log('[publicCourseService] Database instance:', db);
+  
+  const snapshot = await getDocs(coursesCollection);
+  console.log('[publicCourseService] Raw Firestore snapshot:', snapshot.docs.map(doc => ({ id: doc.id, data: doc.data() })));
+  const mapped = snapshot.docs.map((doc) => normalizePublicCourse(doc.id, doc.data()));
+  console.log('[publicCourseService] Mapped courses:', mapped);
+  return mapped;
 }
