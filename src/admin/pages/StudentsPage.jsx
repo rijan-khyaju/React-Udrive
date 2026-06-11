@@ -1,0 +1,145 @@
+import { useMemo, useState } from 'react';
+import DataTable from '../components/DataTable';
+import StudentModal from '../components/StudentModal';
+import { adminStudents } from '../data/adminData';
+
+const statusOptions = ['All', 'Active', 'Pending', 'Inactive'];
+
+export default function StudentsPage() {
+  const [students, setStudents] = useState(adminStudents);
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('All');
+  const [courseFilter, setCourseFilter] = useState('All');
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState('add');
+  const [selectedStudent, setSelectedStudent] = useState(null);
+
+  const courses = useMemo(() => {
+    const unique = Array.from(new Set(students.map((student) => student.course)));
+    return unique.sort();
+  }, [students]);
+
+  const filteredStudents = useMemo(() => {
+    return students.filter((student) => {
+      const query = search.toLowerCase();
+      const matchesSearch =
+        student.name.toLowerCase().includes(query) ||
+        student.student_id.toLowerCase().includes(query) ||
+        student.email.toLowerCase().includes(query) ||
+        student.phone.toLowerCase().includes(query) ||
+        student.course.toLowerCase().includes(query);
+
+      const matchesStatus = statusFilter === 'All' || student.status === statusFilter;
+      const matchesCourse = courseFilter === 'All' || student.course === courseFilter;
+
+      return matchesSearch && matchesStatus && matchesCourse;
+    });
+  }, [students, search, statusFilter, courseFilter]);
+
+  const openAddModal = () => {
+    setSelectedStudent(null);
+    setModalMode('add');
+    setModalOpen(true);
+  };
+
+  const openEditModal = (student) => {
+    setSelectedStudent(student);
+    setModalMode('edit');
+    setModalOpen(true);
+  };
+
+  const openViewModal = (student) => {
+    setSelectedStudent(student);
+    setModalMode('view');
+    setModalOpen(true);
+  };
+
+  const handleSubmitStudent = (studentData) => {
+    if (modalMode === 'edit') {
+      setStudents((current) =>
+        current.map((item) => (item.student_id === studentData.student_id ? studentData : item))
+      );
+    } else {
+      const nextId = `ST-${String(students.length + 1).padStart(3, '0')}`;
+      setStudents((current) => [{ ...studentData, student_id: nextId, status: 'Active' }, ...current]);
+    }
+    setModalOpen(false);
+  };
+
+  const handleDeleteStudent = (studentId) => {
+    if (window.confirm('Delete this student record?')) {
+      setStudents((current) => current.filter((student) => student.student_id !== studentId));
+    }
+  };
+
+  return (
+    <section className="admin-page admin-students">
+      <div className="students-page-header">
+        <div>
+          <h2>Students</h2>
+          <p className="page-copy">Manage learners, review enrollment details, and update student records.</p>
+        </div>
+        <button className="btn-primary" onClick={openAddModal}>Add Student</button>
+      </div>
+
+      <div className="students-filters">
+        <div className="filter-group">
+          <label htmlFor="student-search">Search</label>
+          <input
+            id="student-search"
+            type="search"
+            placeholder="Search by name, ID, email, or phone"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+          />
+        </div>
+
+        <div className="filter-group">
+          <label htmlFor="status-filter">Status</label>
+          <select id="status-filter" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
+            {statusOptions.map((status) => (
+              <option key={status} value={status}>{status}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="filter-group">
+          <label htmlFor="course-filter">Course</label>
+          <select id="course-filter" value={courseFilter} onChange={(event) => setCourseFilter(event.target.value)}>
+            <option value="All">All</option>
+            {courses.map((course) => (
+              <option key={course} value={course}>{course}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      <div className="admin-card admin-card-large">
+        <div className="admin-card-header">
+          <h3>Student roster</h3>
+          <span>{filteredStudents.length} students</span>
+        </div>
+        <DataTable
+          columns={['Student ID', 'Name', 'Email', 'Phone', 'Course', 'Status', 'Actions']}
+          rows={filteredStudents}
+          renderActions={(student) => (
+            <div className="student-actions">
+              <button className="action-btn" type="button" onClick={() => openViewModal(student)}>View</button>
+              <button className="action-btn" type="button" onClick={() => openEditModal(student)}>Edit</button>
+              <button className="action-btn action-delete" type="button" onClick={() => handleDeleteStudent(student.student_id)}>Delete</button>
+            </div>
+          )}
+        />
+      </div>
+
+      <StudentModal
+        open={modalOpen}
+        mode={modalMode}
+        student={selectedStudent}
+        courses={courses}
+        onClose={() => setModalOpen(false)}
+        onSubmit={handleSubmitStudent}
+      />
+    </section>
+  );
+}

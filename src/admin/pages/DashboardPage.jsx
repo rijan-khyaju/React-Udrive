@@ -1,0 +1,182 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import StatCard from '../components/StatCard';
+import Modal from '../components/Modal';
+import DataTable from '../components/DataTable';
+import { adminStats, adminBookings, adminStudents, adminActivity } from '../data/adminData';
+
+const actionLabels = {
+  'add-student': 'Add Student',
+  'add-course': 'Add Course',
+  'add-instructor': 'Add Instructor',
+  'create-booking': 'Create Booking',
+};
+
+export default function DashboardPage() {
+  const navigate = useNavigate();
+  const [activeModal, setActiveModal] = useState(null);
+  const [selectedItem, setSelectedItem] = useState(null);
+
+  const handleCardClick = (label) => {
+    const pathMap = {
+      'Total Students': '/admin/students',
+      'Total Courses': '/admin/courses',
+      'Total Instructors': '/admin/instructors',
+      'Total Bookings': '/admin/bookings',
+    };
+
+    const path = pathMap[label];
+    if (path) navigate(path);
+  };
+
+  const openQuickAction = (action) => {
+    setSelectedItem(null);
+    setActiveModal(action);
+  };
+
+  const openBookingDetails = (booking) => {
+    setSelectedItem(booking);
+    setActiveModal('booking-details');
+  };
+
+  const openStudentDetails = (student) => {
+    setSelectedItem(student);
+    setActiveModal('student-details');
+  };
+
+  const closeModal = () => {
+    setActiveModal(null);
+    setSelectedItem(null);
+  };
+
+  const renderModalContent = () => {
+    if (activeModal === 'booking-details' && selectedItem) {
+      return (
+        <div>
+          <p><strong>Booking ID:</strong> {selectedItem.booking_id}</p>
+          <p><strong>Student:</strong> {selectedItem.student}</p>
+          <p><strong>Course:</strong> {selectedItem.course}</p>
+          <p><strong>Booking Date:</strong> {selectedItem.booking_date}</p>
+          <p><strong>Booking Status:</strong> {selectedItem.booking_status}</p>
+          <p className="modal-note">This is a placeholder for booking details.</p>
+        </div>
+      );
+    }
+
+    if (activeModal === 'student-details' && selectedItem) {
+      return (
+        <div>
+          <p><strong>Student ID:</strong> {selectedItem.student_id}</p>
+          <p><strong>Name:</strong> {selectedItem.name}</p>
+          <p><strong>Course:</strong> {selectedItem.course}</p>
+          <p><strong>Status:</strong> {selectedItem.status}</p>
+          <p className="modal-note">This is a placeholder for student details.</p>
+        </div>
+      );
+    }
+
+    if (activeModal && actionLabels[activeModal]) {
+      return (
+        <div>
+          <p>{actionLabels[activeModal]} modal is open.</p>
+          <p className="modal-note">This is a reusable placeholder modal for admin actions.</p>
+        </div>
+      );
+    }
+
+    return null;
+  };
+
+  const modalTitle = activeModal === 'booking-details'
+    ? 'Booking Details'
+    : activeModal === 'student-details'
+    ? 'Student Details'
+    : activeModal
+    ? actionLabels[activeModal]
+    : '';
+
+  return (
+    <section className="admin-page admin-dashboard">
+      <div className="dashboard-header">
+        <div>
+          <p className="dashboard-welcome">Welcome back, Admin</p>
+          <p className="dashboard-copy">Your UDrive dashboard overview for the latest activity.</p>
+        </div>
+      </div>
+
+      <div className="admin-stats-grid">
+        {adminStats.map((stat) => (
+          <StatCard
+            key={stat.label}
+            icon={stat.icon}
+            label={stat.label}
+            value={stat.value}
+            delta={stat.delta}
+            onClick={() => handleCardClick(stat.label)}
+          />
+        ))}
+      </div>
+
+      <div className="admin-grid admin-grid-2">
+        <div className="admin-card admin-card-large">
+          <div className="admin-card-header">
+            <h3>Recent Bookings</h3>
+            <span>Latest 7 entries</span>
+          </div>
+          <DataTable
+            columns={['Booking ID', 'Student', 'Course', 'Date', 'Status']}
+            rows={adminBookings}
+            onRowClick={openBookingDetails}
+          />
+        </div>
+
+        <div className="admin-card admin-card-large">
+          <div className="admin-card-header">
+            <h3>Recent Students</h3>
+            <span>Newest registrations</span>
+          </div>
+          <DataTable
+            columns={['Student ID', 'Name', 'Course', 'Status']}
+            rows={adminStudents}
+            onRowClick={openStudentDetails}
+          />
+        </div>
+      </div>
+
+      <div className="admin-grid admin-grid-3">
+        <div className="admin-card">
+          <div className="admin-card-header">
+            <h3>Activity Feed</h3>
+          </div>
+          <div className="activity-feed">
+            {adminActivity.map((item) => (
+              <div key={item.title} className="activity-item">
+                <div>
+                  <p className="activity-title">{item.title}</p>
+                  <p className="activity-details">{item.details}</p>
+                </div>
+                <span className="activity-time">{item.time}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="admin-card">
+          <div className="admin-card-header">
+            <h3>Quick Actions</h3>
+          </div>
+          <div className="quick-actions-grid">
+            <button className="quick-action-btn" onClick={() => openQuickAction('add-student')}>Add Student</button>
+            <button className="quick-action-btn" onClick={() => openQuickAction('add-course')}>Add Course</button>
+            <button className="quick-action-btn" onClick={() => openQuickAction('add-instructor')}>Add Instructor</button>
+            <button className="quick-action-btn" onClick={() => openQuickAction('create-booking')}>Create Booking</button>
+          </div>
+        </div>
+      </div>
+
+      <Modal open={Boolean(activeModal)} title={modalTitle} onClose={closeModal}>
+        {renderModalContent()}
+      </Modal>
+    </section>
+  );
+}
