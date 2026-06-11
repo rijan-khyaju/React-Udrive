@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import CourseCard from '../components/CourseCard';
-import { courses } from '../data';
+import usePublicCourses from '../hooks/usePublicCourses';
 
 const tags = ['All', 'Beginner', 'Intermediate', 'Advanced', 'Refresher', 'Night Driving', 'Corporate'];
 
 export default function CoursesPage({ setPage }) {
+  const { courses, loading, error, refreshCourses } = usePublicCourses();
   const [active, setActive] = useState('All');
 
-  const filtered = active === 'All' ? courses : courses.filter(c => c.tag === active);
+  const filtered = active === 'All' ? courses : courses.filter((c) => c.tag === active);
 
   return (
     <main style={{ marginTop: 72 }}>
@@ -57,11 +58,18 @@ export default function CoursesPage({ setPage }) {
       {/* Grid */}
       <section style={{ padding: '56px 0 96px', background: 'var(--gray-light)' }}>
         <div className="container">
-          {filtered.length === 0 ? (
+          {loading ? (
+            <p style={{ color: 'var(--gray)', textAlign: 'center', padding: '48px 0' }}>Loading courses...</p>
+          ) : error ? (
+            <div style={{ textAlign: 'center', padding: '48px 0' }}>
+              <p style={{ color: 'var(--gray)' }}>Unable to load courses.</p>
+              <button className="btn btn-dark" onClick={refreshCourses}>Retry</button>
+            </div>
+          ) : filtered.length === 0 ? (
             <p style={{ color: 'var(--gray)', textAlign: 'center', padding: '48px 0' }}>No courses found.</p>
           ) : (
             <div className="courses-grid">
-              {filtered.map(c => (
+              {filtered.map((c) => (
                 <CourseCard key={c.id} course={c} onBook={() => setPage('booking')} />
               ))}
             </div>

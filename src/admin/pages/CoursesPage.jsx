@@ -1,12 +1,12 @@
 import { useMemo, useState } from 'react';
 import DataTable from '../components/DataTable';
 import CourseModal from '../components/CourseModal';
-import { adminCourses } from '../data/adminData';
+import useCourses from '../hooks/useCourses';
 
 const statusOptions = ['All', 'Active', 'Draft', 'Paused'];
 
 export default function CoursesPage() {
-  const [courses, setCourses] = useState(adminCourses);
+  const { courses, loading, error, addCourse, updateCourse, deleteCourse, refreshCourses } = useCourses();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [modalOpen, setModalOpen] = useState(false);
@@ -44,37 +44,27 @@ export default function CoursesPage() {
     setModalOpen(true);
   };
 
-  const handleSubmitCourse = (courseData) => {
+  const handleSubmitCourse = async (courseData) => {
     const normalizedCourse = {
       ...courseData,
+      priceNPR: courseData.priceNPR ?? courseData.fee ?? courseData.price ?? '',
       course_name: courseData.name,
-      number_of_students: courseData.students ?? 0,
       students: courseData.students ?? courseData.number_of_students ?? 0,
+      number_of_students: courseData.number_of_students ?? courseData.students ?? 0,
     };
 
     if (modalMode === 'edit') {
-      setCourses((current) =>
-        current.map((item) =>
-          item.course_id === courseData.course_id
-            ? {
-                ...item,
-                ...normalizedCourse,
-                students: item.students ?? normalizedCourse.students,
-                number_of_students: item.number_of_students ?? normalizedCourse.number_of_students,
-              }
-            : item
-        )
-      );
+      await updateCourse(selectedCourse.course_id, normalizedCourse);
     } else {
-      const nextId = `CR-${String(courses.length + 1).padStart(3, '0')}`;
-      setCourses((current) => [{ ...normalizedCourse, course_id: nextId, status: 'Active' }, ...current]);
+      await addCourse(normalizedCourse);
     }
+
     setModalOpen(false);
   };
 
-  const handleDeleteCourse = (courseId) => {
+  const handleDeleteCourse = async (courseId) => {
     if (window.confirm('Delete this course?')) {
-      setCourses((current) => current.filter((course) => course.course_id !== courseId));
+      await deleteCourse(courseId);
     }
   };
 
@@ -85,7 +75,7 @@ export default function CoursesPage() {
           <h2>Courses</h2>
           <p className="page-copy">Manage course offerings, pricing, and schedule availability.</p>
         </div>
-        <button className="btn-primary" onClick={openAddModal}>Add Course</button>
+        <button className="btn-primary" onClick={openAddModal} disabled={loading}>Add Course</button>
       </div>
 
       <div className="courses-filters">
@@ -110,23 +100,47 @@ export default function CoursesPage() {
         </div>
       </div>
 
-      <div className="admin-card admin-card-large">
-        <div className="admin-card-header">
-          <h3>Course catalog</h3>
-          <span>{filteredCourses.length} courses</span>
+      {loading ? (
+        <div className="admin-card admin-card-large">
+          <div className="admin-card-header">
+            <h3>Course catalog</h3>
+          </div>
+          <p>Loading courses...</p>
         </div>
-        <DataTable
-          columns={['Course ID', 'Course Name', 'Duration', 'Fee', 'Number of Students', 'Status', 'Actions']}
-          rows={filteredCourses}
-          renderActions={(course) => (
-            <div className="course-actions">
-              <button className="action-btn" type="button" onClick={() => openViewModal(course)}>View</button>
-              <button className="action-btn" type="button" onClick={() => openEditModal(course)}>Edit</button>
-              <button className="action-btn action-delete" type="button" onClick={() => handleDeleteCourse(course.course_id)}>Delete</button>
-            </div>
-          )}
-        />
-      </div>
+      ) : error ? (
+        <div className="admin-card admin-card-large">
+          <div className="admin-card-header">
+            <h3>Course catalog</h3>
+          </div>
+          <p className="error-message">{error.message || 'Unable to load courses.'}</p>
+          <button className="btn-secondary" type="button" onClick={refreshCourses}>Retry</button>
+        </div>
+      ) : filteredCourses.length === 0 ? (
+        <div className="admin-card admin-card-large">
+          <div className="admin-card-header">
+            <h3>Course catalog</h3>
+          </div>
+          <p>No courses found. Add a new course to get started.</p>
+        </div>
+      ) : (
+        <div className="admin-card admin-card-large">
+          <div className="admin-card-header">
+            <h3>Course catalog</h3>
+            <span>{filteredCourses.length} courses</span>
+          </div>
+          <DataTable
+            columns={['Course ID', 'Course Name', 'Duration', 'Fee', 'Number of Students', 'Status', 'Actions']}
+            rows={filteredCourses}
+            renderActions={(course) => (
+              <div className="course-actions">
+                <button className="action-btn" type="button" onClick={() => openViewModal(course)}>View</button>
+                <button className="action-btn" type="button" onClick={() => openEditModal(course)}>Edit</button>
+                <button className="action-btn action-delete" type="button" onClick={() => handleDeleteCourse(course.course_id)}>Delete</button>
+              </div>
+            )}
+          />
+        </div>
+      )}
 
       <CourseModal
         open={modalOpen}

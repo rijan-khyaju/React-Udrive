@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import CourseCard from '../components/CourseCard';
-import { courses, testimonials, whyUs } from '../data';
+import usePublicCourses from '../hooks/usePublicCourses';
+import { testimonials, whyUs } from '../data';
 
 function useCountUp(target, duration = 2000, active = false) {
   const [val, setVal] = useState(0);
@@ -45,6 +46,7 @@ const tickerItems = ['Basic Driving','Defensive Driving','License Prep','Night D
 export default function HomePage({ setPage }) {
   const [statsActive, setStatsActive] = useState(false);
   const heroRef = useRef(null);
+  const { courses, loading, error } = usePublicCourses();
 
   useEffect(() => {
     const timer = setTimeout(() => setStatsActive(true), 400);
@@ -145,7 +147,11 @@ export default function HomePage({ setPage }) {
             <button className="btn btn-dark" onClick={() => setPage('courses')}>View All Courses →</button>
           </div>
           <div className="courses-grid">
-            {courses.slice(0, 3).map(c => (
+            {loading ? (
+              <p style={{ color: 'var(--gray)', textAlign: 'center', width: '100%' }}>Loading courses...</p>
+            ) : error ? (
+              <p style={{ color: 'var(--gray)', textAlign: 'center', width: '100%' }}>Unable to load courses.</p>
+            ) : courses.slice(0, 3).map((c) => (
               <CourseCard key={c.id} course={c} onBook={() => setPage('booking')} />
             ))}
           </div>

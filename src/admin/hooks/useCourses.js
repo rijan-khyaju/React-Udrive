@@ -24,18 +24,45 @@ export default function useCourses() {
   }
 
   async function addCourse(courseData) {
-    const data = await courseService.addCourse(courseData);
-    setCourses(data);
+    setLoading(true);
+    setError(null);
+
+    try {
+      await courseService.createCourse(courseData);
+      await fetchCourses();
+    } catch (err) {
+      setError(err);
+    } finally {
+      setLoading(false);
+    }
   }
 
-  async function updateCourse(courseData) {
-    const data = await courseService.updateCourse(courseData);
-    setCourses(data);
+  async function updateCourse(courseId, courseData) {
+    setLoading(true);
+    setError(null);
+
+    try {
+      await courseService.updateCourse(courseId, courseData);
+      await fetchCourses();
+    } catch (err) {
+      setError(err);
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function deleteCourse(courseId) {
-    const data = await courseService.deleteCourse(courseId);
-    setCourses(data);
+    setLoading(true);
+    setError(null);
+
+    try {
+      await courseService.deleteCourse(courseId);
+      await fetchCourses();
+    } catch (err) {
+      setError(err);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return {
