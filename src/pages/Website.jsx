@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import HomePage from './HomePage';
@@ -8,7 +9,8 @@ import InstructorsPage from './InstructorsPage';
 import DashboardPage from './DashboardPage';
 
 export default function Website() {
-  const [page, setPage] = useState('home');
+  const location = useLocation();
+  const [page, setPage] = useState(() => location.state?.page || 'home');
 
   const navigate = (p) => {
     setPage(p);

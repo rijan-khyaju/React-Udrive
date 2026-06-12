@@ -1,18 +1,31 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 
 export default function Navbar({ page, setPage }) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const userMenuRef = useRef(null);
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', onScroll);
     return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+        setUserMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const links = [
@@ -23,7 +36,15 @@ export default function Navbar({ page, setPage }) {
     { label: 'Dashboard', id: 'dashboard' },
   ];
 
-  const go = (id) => { setPage(id); setMenuOpen(false); window.scrollTo(0, 0); };
+  const go = (id) => {
+    setMenuOpen(false);
+    window.scrollTo(0, 0);
+    if (location.pathname !== '/') {
+      navigate('/', { state: { page: id } });
+    } else {
+      setPage(id);
+    }
+  };
 
   return (
     <>
@@ -51,7 +72,7 @@ export default function Navbar({ page, setPage }) {
                   Login
                 </button>
               ) : (
-                <div className="user-menu" onMouseLeave={() => setUserMenuOpen(false)}>
+                <div className="user-menu" ref={userMenuRef}>
                   <button
                     type="button"
                     className="user-name"
@@ -61,10 +82,22 @@ export default function Navbar({ page, setPage }) {
                   </button>
                   {userMenuOpen && (
                     <div className="user-dropdown">
-                      <button type="button" onClick={() => { navigate('/profile'); setUserMenuOpen(false); }}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigate('/profile');
+                          setUserMenuOpen(false);
+                        }}
+                      >
                         Profile
                       </button>
-                      <button type="button" onClick={() => { navigate('/login'); setUserMenuOpen(false); }}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigate('/login');
+                          setUserMenuOpen(false);
+                        }}
+                      >
                         Logout
                       </button>
                     </div>
