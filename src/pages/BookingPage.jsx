@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
+import { Navigate } from 'react-router-dom';
 import { collection, getDocs } from 'firebase/firestore';
 import { db, isFirebaseConfigured } from '../firebase/firebaseConfig.js';
 import * as bookingService from '../admin/services/bookingService.js';
 import * as studentService from '../admin/services/studentService.js';
+import { useAuth } from '../context/AuthContext.jsx';
 
 const details = [
   { icon: '📍', label: 'Location', val: 'Maharajgunj, Kathmandu' },
@@ -12,6 +14,7 @@ const details = [
 ];
 
 export default function BookingPage() {
+  const { user, loading } = useAuth();
   const [form, setForm] = useState({ name: '', email: '', phone: '', course: '', date: '', time: '', message: '' });
   const [submitted, setSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState(null);
@@ -49,6 +52,17 @@ export default function BookingPage() {
 
     fetchCourses();
   }, []);
+
+  useEffect(() => {
+    if (user) {
+      setForm((prev) => ({
+        ...prev,
+        name: prev.name || user.displayName || '',
+        email: prev.email || user.email || '',
+        phone: prev.phone || user.phone || '',
+      }));
+    }
+  }, [user]);
 
   const handle = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -91,6 +105,10 @@ export default function BookingPage() {
       setSubmitError('Unable to submit booking. Please try again.');
     }
   };
+
+  if (!loading && !user) {
+    return <Navigate to="/login" replace />;
+  }
 
   return (
     <main style={{ marginTop: 72 }}>

@@ -1,5 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import Website from './pages/Website';
+import AuthPage from './pages/AuthPage.jsx';
+import ProfilePage from './pages/ProfilePage.jsx';
 import AdminLayout from './admin/layouts/AdminLayout';
 import AdminDashboardPage from './admin/pages/DashboardPage';
 import StudentsPage from './admin/pages/StudentsPage';
@@ -9,16 +11,23 @@ import BookingsPage from './admin/pages/BookingsPage';
 import ReportsPage from './admin/pages/ReportsPage';
 import SettingsPage from './admin/pages/SettingsPage';
 import LoginPage from './admin/pages/LoginPage';
-import { AuthProvider } from './admin/auth/AuthContext';
+import { AuthProvider as AdminAuthProvider } from './admin/auth/AuthContext';
+import { PublicAuthProvider } from './context/AuthContext.jsx';
 import ProtectedRoute from './admin/auth/ProtectedRoute';
 import { ADMIN_ROLE } from './admin/auth/roles';
 
 export default function App() {
   return (
-    <AuthProvider>
+    <AdminAuthProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Website />} />
+          <Route element={<PublicAuthProvider />}>
+            <Route path="/" element={<Website />} />
+            <Route path="/login" element={<AuthPage initialTab="login" />} />
+            <Route path="/signup" element={<AuthPage initialTab="signup" />} />
+            <Route path="/profile" element={<ProfilePage />} />
+          </Route>
+
           <Route path="/admin/login" element={<LoginPage />} />
           <Route element={<ProtectedRoute allowedRoles={[ADMIN_ROLE]} />}>
             <Route path="/admin" element={<AdminLayout />}>
@@ -35,6 +44,6 @@ export default function App() {
           <Route path="*" element={<Navigate replace to="/" />} />
         </Routes>
       </BrowserRouter>
-    </AuthProvider>
+    </AdminAuthProvider>
   );
 }

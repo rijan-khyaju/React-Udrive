@@ -14,10 +14,8 @@ export default function InstructorsPage({ setPage }) {
         setLoading(false);
         return;
       }
-
       try {
-        const instructorsCollection = collection(db, 'instructors');
-        const snapshot = await getDocs(instructorsCollection);
+        const snapshot = await getDocs(collection(db, 'instructors'));
         const normalized = snapshot.docs.map((doc) => {
           const raw = doc.data();
           return {
@@ -25,8 +23,6 @@ export default function InstructorsPage({ setPage }) {
             name: raw.name ?? '',
             experience: raw.experience ?? '',
             assignedCourse: raw.assignedCourse ?? raw.assigned_course ?? '',
-            email: raw.email ?? '',
-            phone: raw.phone ?? raw.contact ?? '',
             status: raw.status ?? 'Active',
           };
         });
@@ -37,9 +33,15 @@ export default function InstructorsPage({ setPage }) {
         setLoading(false);
       }
     }
-
     fetchInstructors();
   }, []);
+
+  const getStatusStyle = (status) => {
+    if (status === 'Active') return { background: '#22c55e', color: 'white' };
+    if (status === 'On Leave') return { background: '#f59e0b', color: 'white' };
+    if (status === 'Inactive') return { background: '#ef4444', color: 'white' };
+    return { background: '#6b7280', color: 'white' };
+  };
 
   return (
     <main style={{ marginTop: 72 }}>
@@ -64,11 +66,21 @@ export default function InstructorsPage({ setPage }) {
           ) : error ? (
             <p style={{ color: 'var(--gray)', textAlign: 'center', fontSize: 16 }}>Unable to load instructors.</p>
           ) : instructors.length === 0 ? (
-            <p style={{ color: 'var(--gray)', textAlign: 'center', fontSize: 16 }}>No instructors available at the moment.</p>
+            <p style={{ color: 'var(--gray)', textAlign: 'center', fontSize: 16 }}>No instructors available.</p>
           ) : (
             <div className="instructors-grid">
               {instructors.map((instructor) => (
-                <div key={instructor.id} className="instructor-card">
+                <div key={instructor.id} className="instructor-card" style={{ position: 'relative' }}>
+                  {/* Status Badge */}
+                  <div style={{
+                    position: 'absolute', top: 12, right: 12,
+                    ...getStatusStyle(instructor.status),
+                    fontSize: 10, fontWeight: 700, padding: '3px 10px',
+                    borderRadius: 2, letterSpacing: '0.06em', textTransform: 'uppercase'
+                  }}>
+                    {instructor.status}
+                  </div>
+
                   <span className="instructor-card-tag">Expert Instructor</span>
                   <h3 className="instructor-card-name">{instructor.name}</h3>
                   <p className="instructor-card-text">{instructor.experience}</p>

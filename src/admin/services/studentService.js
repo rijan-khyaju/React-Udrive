@@ -7,9 +7,12 @@ import {
   getDocs,
   addDoc,
   doc,
+  getDoc,
   updateDoc,
   deleteDoc,
   serverTimestamp,
+  increment,
+  where,
 } from 'firebase/firestore';
 
 const studentsCollection = isFirebaseConfigured ? collection(db, 'students') : null;
@@ -114,7 +117,27 @@ export async function deleteStudent(studentId) {
   }
 
   try {
+    // Get student data before deleting to find their course
     const studentRef = doc(db, 'students', studentId);
+    const studentSnap = await getDoc(studentRef);
+    
+    if (studentSnap.exists()) {
+      const studentData = studentSnap.data();
+      const courseName = studentData.course;
+      
+      // Decrement course student count
+      if (courseName) {
+        const coursesCol = collection(db, 'courses');
+        let courseSnapshot = await getDocs(query(coursesCol, where('title', '==', courseName)));
+        if (courseSnapshot.size === 0) {
+          courseSnapshot = await getDocs(query(coursesCol, where('name', '==', courseName)));
+        }
+        if (courseSnapshot.size > 0) {
+          await updateDoc(doc(db, 'courses', courseSnapshot.docs[0].id), { students: increment(-1) });
+        }
+      }
+    }
+    
     await deleteDoc(studentRef);
     return await getFirestoreStudents();
   } catch (error) {

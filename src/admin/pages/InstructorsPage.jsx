@@ -2,12 +2,13 @@ import { useMemo, useRef, useState } from 'react';
 import DataTable from '../components/DataTable';
 import InstructorModal from '../components/InstructorModal';
 import useInstructors from '../hooks/useInstructors';
-import { adminCourses } from '../data/adminData';
+import usePublicCourses from '../../hooks/usePublicCourses';
 
 const statusOptions = ['All', 'Active', 'On Leave', 'Inactive'];
 
 export default function InstructorsPage() {
   const { instructors, addInstructor, updateInstructor, deleteInstructor } = useInstructors();
+  const { courses } = usePublicCourses();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [modalOpen, setModalOpen] = useState(false);
@@ -128,7 +129,7 @@ export default function InstructorsPage() {
         open={modalOpen}
         mode={modalMode}
         instructor={selectedInstructor}
-        courses={adminCourses}
+        courses={courses}
         formRef={formRef}
         onClose={() => setModalOpen(false)}
         onSubmit={handleSubmitInstructor}

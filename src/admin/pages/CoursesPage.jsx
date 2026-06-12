@@ -62,14 +62,14 @@ export default function CoursesPage() {
     }
     
     const normalizedCourse = {
-      ...courseData,
-      priceNPR: courseData.priceNPR || feeValue || courseData.price || '',
-      fee: feeValue || courseData.priceNPR || courseData.price || '',
-      price: feeValue || courseData.priceNPR || courseData.price || '',
-      course_name: courseData.name,
-      students: courseData.students ?? courseData.number_of_students ?? 0,
-      number_of_students: courseData.number_of_students ?? courseData.students ?? 0,
-    };
+  ...courseData,
+  priceNPR: feeValue,
+  fee: feeValue,
+  price: feeValue,
+  course_name: courseData.name,
+  students: courseData.students ?? courseData.number_of_students ?? 0,
+  number_of_students: courseData.number_of_students ?? courseData.students ?? 0,
+};
 
     if (modalMode === 'edit') {
       const courseId = selectedCourse?.course_id ?? selectedCourse?.id;

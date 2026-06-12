@@ -60,9 +60,11 @@ export default function InstructorModal({ open, mode, instructor, courses, formR
           <label htmlFor="assigned_course">Assigned Course</label>
           <select id="assigned_course" name="assigned_course" value={form.assigned_course} onChange={handleChange} disabled={isView} required>
             <option value="">Select a course</option>
-            {courses.map((course) => (
-              <option key={course.course_id} value={course.name}>{course.name}</option>
-            ))}
+            {(courses || []).map((course) => (
+  <option key={course.id ?? course.course_id} value={course.title ?? course.name}>
+    {course.title ?? course.name}
+  </option>
+))}
           </select>
         </div>
 

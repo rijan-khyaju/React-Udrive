@@ -61,7 +61,7 @@ function normalizeAdminCourse(id, data) {
     priceNPR,
     status: data.status ?? 'Active',
     students: data.students ?? data.number_of_students ?? 0,
-    number_of_students: data.number_of_students ?? data.students ?? 0,
+    number_of_students: data.students ?? data.number_of_students ?? 0,
   };
 }
 

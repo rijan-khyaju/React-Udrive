@@ -8,6 +8,7 @@ import {
   addDoc,
   doc,
   updateDoc,
+  deleteDoc,
   serverTimestamp,
   increment,
   where,
@@ -21,6 +22,7 @@ const clone = (data) => data.map((item) => ({ ...item }));
 function normalizeBooking(id, data) {
   return {
     booking_id: id,
+    student_name: data.student ?? data.name ?? '',
     student: data.student ?? data.name ?? '',
     course: data.course ?? '',
     booking_date: data.booking_date ?? data.date ?? '',
@@ -82,31 +84,6 @@ export async function addBooking(bookingData) {
     const docRef = await addDoc(bookingsCollection, data);
     const newBooking = normalizeBooking(docRef.id, data);
     
-    // Increment student count for the matching course
-    if (bookingData.course) {
-      try {
-        const coursesCollection = collection(db, 'courses');
-        
-        // Try 'name' field first
-        let courseSnapshot = await getDocs(query(coursesCollection, where('name', '==', bookingData.course)));
-        
-        // If not found, try 'title' field as fallback
-        if (courseSnapshot.size === 0) {
-          courseSnapshot = await getDocs(query(coursesCollection, where('title', '==', bookingData.course)));
-        }
-        
-        if (courseSnapshot.size > 0) {
-          const courseDoc = courseSnapshot.docs[0];
-          const courseRef = doc(db, 'courses', courseDoc.id);
-          await updateDoc(courseRef, { students: increment(1) });
-          console.log('[bookingService] Incremented student count for course:', bookingData.course);
-        } else {
-          console.warn('[bookingService] Course not found:', bookingData.course);
-        }
-      } catch (err) {
-        console.warn('[bookingService] Could not increment course student count:', err);
-      }
-    }
     
     return newBooking;
   } catch (error) {
@@ -115,7 +92,7 @@ export async function addBooking(bookingData) {
   }
 }
 
-export async function updateBookingStatus(bookingId, updates) {
+export async function updateBookingStatus(bookingId, updates, bookingData) {
   if (!isFirebaseConfigured) {
     bookings = bookings.map((booking) =>
       booking.booking_id === bookingId ? { ...booking, ...updates } : booking
@@ -126,6 +103,67 @@ export async function updateBookingStatus(bookingId, updates) {
   try {
     const bookingRef = doc(db, 'bookings', bookingId);
     await updateDoc(bookingRef, { ...updates, updatedAt: serverTimestamp() });
+
+    // Handle approve — add student + increment course count
+if (updates.booking_status === 'Approved' && bookingData) {
+  try {
+    const studentsCollection = collection(db, 'students');
+    // Check if student already exists for this booking
+    const existingStudent = await getDocs(query(studentsCollection, where('booking_id', '==', bookingId)));
+    if (existingStudent.size === 0) {
+      await addDoc(studentsCollection, {
+        name: bookingData.student,
+        email: bookingData.email,
+        phone: bookingData.phone,
+        course: bookingData.course,
+        status: 'Active',
+        booking_id: bookingId,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+
+      // Increment course student count
+      const coursesCollection = collection(db, 'courses');
+      let courseSnapshot = await getDocs(query(coursesCollection, where('title', '==', bookingData.course)));
+      if (courseSnapshot.size === 0) {
+        courseSnapshot = await getDocs(query(coursesCollection, where('name', '==', bookingData.course)));
+      }
+      if (courseSnapshot.size > 0) {
+        await updateDoc(doc(db, 'courses', courseSnapshot.docs[0].id), { students: increment(1) });
+      }
+    }
+  } catch (err) {
+    console.warn('[bookingService] approve side effects error:', err);
+  }
+}
+
+    // Handle cancel — remove student + decrement course count
+    if (updates.booking_status === 'Cancelled' && bookingData) {
+      try {
+        // Find and delete matching student by booking_id
+        const studentsCollection = collection(db, 'students');
+        let studentSnapshot = await getDocs(query(studentsCollection, where('booking_id', '==', bookingId)));
+if (studentSnapshot.size === 0 && bookingData.email) {
+  studentSnapshot = await getDocs(query(studentsCollection, where('email', '==', bookingData.email)));
+}
+        for (const studentDoc of studentSnapshot.docs) {
+          await deleteDoc(doc(db, 'students', studentDoc.id));
+        }
+
+        // Decrement course student count
+        const coursesCollection = collection(db, 'courses');
+        let courseSnapshot = await getDocs(query(coursesCollection, where('title', '==', bookingData.course)));
+        if (courseSnapshot.size === 0) {
+          courseSnapshot = await getDocs(query(coursesCollection, where('name', '==', bookingData.course)));
+        }
+        if (courseSnapshot.size > 0) {
+          await updateDoc(doc(db, 'courses', courseSnapshot.docs[0].id), { students: increment(-1) });
+        }
+      } catch (err) {
+        console.warn('[bookingService] cancel side effects error:', err);
+      }
+    }
+
     return await getFirestoreBookings();
   } catch (error) {
     console.error('[bookingService] updateBookingStatus error:', bookingId, error);

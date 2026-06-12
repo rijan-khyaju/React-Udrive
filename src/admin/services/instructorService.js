@@ -80,6 +80,7 @@ export async function updateInstructor(instructorData) {
       contact: instructorData.phone,
       experience: instructorData.experience,
       assigned_course: instructorData.assigned_course,
+      assignedCourse: instructorData.assigned_course,
       status: instructorData.status ?? 'Active',
       updatedAt: serverTimestamp(),
     };

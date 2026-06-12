@@ -1,8 +1,13 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext.jsx';
 
 export default function Navbar({ page, setPage }) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const { user } = useAuth();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -22,7 +27,7 @@ export default function Navbar({ page, setPage }) {
 
   return (
     <>
-      <nav className="navbar">
+      <nav className={`navbar ${scrolled ? 'navbar-scrolled' : ''}`}>
         <div className="container">
           <div className="navbar-inner">
             <div className="nav-logo" onClick={() => go('home')}>
@@ -30,7 +35,7 @@ export default function Navbar({ page, setPage }) {
               <div className="nav-logo-text">U<span>Drive</span></div>
             </div>
             <div className="nav-links">
-              {links.map(l => (
+              {links.map((l) => (
                 <span
                   key={l.id}
                   className={`nav-link ${page === l.id ? 'active' : ''}`}
@@ -40,7 +45,34 @@ export default function Navbar({ page, setPage }) {
                 </span>
               ))}
             </div>
-            <button className="nav-cta" onClick={() => go('booking')}>Book Now</button>
+            <div className="nav-actions">
+              {!user ? (
+                <button className="nav-login" onClick={() => navigate('/login')}>
+                  Login
+                </button>
+              ) : (
+                <div className="user-menu" onMouseLeave={() => setUserMenuOpen(false)}>
+                  <button
+                    type="button"
+                    className="user-name"
+                    onClick={() => setUserMenuOpen((open) => !open)}
+                  >
+                    {user.displayName?.split(' ')[0] || 'Account'}
+                  </button>
+                  {userMenuOpen && (
+                    <div className="user-dropdown">
+                      <button type="button" onClick={() => { navigate('/profile'); setUserMenuOpen(false); }}>
+                        Profile
+                      </button>
+                      <button type="button" onClick={() => { navigate('/login'); setUserMenuOpen(false); }}>
+                        Logout
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+              <button className="nav-cta" onClick={() => go('booking')}>Book Now</button>
+            </div>
             <div className="nav-mobile-toggle" onClick={() => setMenuOpen(!menuOpen)}>
               <span style={menuOpen ? { transform: 'rotate(45deg) translate(5px,5px)' } : {}} />
               <span style={menuOpen ? { opacity: 0 } : {}} />
@@ -50,7 +82,7 @@ export default function Navbar({ page, setPage }) {
         </div>
       </nav>
       <div className={`mobile-menu ${menuOpen ? 'open' : ''}`}>
-        {links.map(l => (
+        {links.map((l) => (
           <span
             key={l.id}
             className={`mobile-nav-link ${page === l.id ? 'active' : ''}`}

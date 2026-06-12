@@ -23,10 +23,10 @@ export default function useBookings() {
     }
   }
 
-  async function updateBooking(bookingId, updates) {
-    const data = await bookingService.updateBookingStatus(bookingId, updates);
-    setBookings(data);
-  }
+  async function updateBooking(bookingId, updates, bookingData) {
+  const data = await bookingService.updateBookingStatus(bookingId, updates, bookingData);
+  setBookings(data);
+}
 
   return {
     bookings,

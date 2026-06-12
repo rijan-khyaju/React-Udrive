@@ -50,24 +50,24 @@ export default function BookingsPage() {
     setModalOpen(false);
   };
 
-  const handleApprove = async (bookingId, currentStatus) => {
-    try {
-      await updateBooking(bookingId, {
-        booking_status: 'Approved',
-        payment_status: currentStatus === 'Pending' ? 'Paid' : currentStatus,
-      });
-    } catch (err) {
-      console.error('[BookingsPage] handleApprove error:', err);
-    }
-  };
+ const handleApprove = async (bookingId, currentStatus, booking) => {
+  try {
+    await updateBooking(bookingId, {
+      booking_status: 'Approved',
+      payment_status: currentStatus === 'Pending' ? 'Paid' : currentStatus,
+    }, booking);
+  } catch (err) {
+    console.error('[BookingsPage] handleApprove error:', err);
+  }
+};
 
-  const handleCancel = async (bookingId) => {
-    try {
-      await updateBooking(bookingId, { booking_status: 'Cancelled' });
-    } catch (err) {
-      console.error('[BookingsPage] handleCancel error:', err);
-    }
-  };
+const handleCancel = async (bookingId, booking) => {
+  try {
+    await updateBooking(bookingId, { booking_status: 'Cancelled' }, booking);
+  } catch (err) {
+    console.error('[BookingsPage] handleCancel error:', err);
+  }
+};
 
   return (
     <section className="admin-page admin-bookings">
@@ -139,7 +139,7 @@ export default function BookingsPage() {
                 <button
                   className="action-btn"
                   type="button"
-                  onClick={() => handleApprove(booking.booking_id, booking.payment_status)}
+                 onClick={() => handleApprove(booking.booking_id, booking.payment_status, booking)}
                   disabled={booking.booking_status === 'Approved' || booking.booking_status === 'Completed' || booking.booking_status === 'Cancelled'}
                 >
                   Approve
@@ -147,7 +147,7 @@ export default function BookingsPage() {
                 <button
                   className="action-btn action-delete"
                   type="button"
-                  onClick={() => handleCancel(booking.booking_id)}
+                  onClick={() => handleCancel(booking.booking_id, booking)}
                   disabled={booking.booking_status === 'Cancelled' || booking.booking_status === 'Completed'}
                 >
                   Cancel
