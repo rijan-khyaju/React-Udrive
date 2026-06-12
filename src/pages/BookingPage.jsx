@@ -3,7 +3,6 @@ import { Navigate } from 'react-router-dom';
 import { collection, getDocs } from 'firebase/firestore';
 import { db, isFirebaseConfigured } from '../firebase/firebaseConfig.js';
 import * as bookingService from '../admin/services/bookingService.js';
-import * as studentService from '../admin/services/studentService.js';
 import { useAuth } from '../context/AuthContext.jsx';
 
 const details = [
@@ -20,6 +19,7 @@ export default function BookingPage() {
   const [submitError, setSubmitError] = useState(null);
   const [courses, setCourses] = useState([]);
   const [coursesPaused, setCoursesPaused] = useState({});
+  const [courseFees, setCourseFees] = useState({});
 
   useEffect(() => {
     async function fetchCourses() {
@@ -32,12 +32,14 @@ export default function BookingPage() {
         const snapshot = await getDocs(coursesCollection);
         const activeCourses = [];
         const pausedMap = {};
+        const feeMap = {};
 
         snapshot.docs.forEach((doc) => {
           const data = doc.data();
           const courseName = data.name || data.title || 'Untitled';
           pausedMap[courseName] = data.status === 'Paused' || data.status === 'Inactive';
-          
+          feeMap[courseName] = Number(data.priceNPR ?? data.fee ?? data.price ?? 0);
+
           if (data.status !== 'Paused' && data.status !== 'Inactive') {
             activeCourses.push(courseName);
           }
@@ -45,6 +47,7 @@ export default function BookingPage() {
 
         setCourses(activeCourses);
         setCoursesPaused(pausedMap);
+        setCourseFees(feeMap);
       } catch (error) {
         console.error('[BookingPage] fetchCourses error:', error);
       }
@@ -76,19 +79,12 @@ export default function BookingPage() {
       return;
     }
 
-    const studentData = {
-      name: form.name,
-      email: form.email,
-      phone: form.phone,
-      course: form.course,
-      status: 'Active',
-    };
-
     const bookingData = {
       student: form.name,
       email: form.email,
       phone: form.phone,
       course: form.course,
+      fee: courseFees[form.course] || 0,
       booking_date: form.date,
       time: form.time,
       message: form.message,
@@ -97,7 +93,6 @@ export default function BookingPage() {
     };
 
     try {
-      await studentService.addStudent(studentData);
       await bookingService.addBooking(bookingData);
       setSubmitted(true);
     } catch (error) {

@@ -6,6 +6,7 @@ import DataTable from '../components/DataTable';
 import * as courseService from '../services/courseService';
 import * as bookingService from '../services/bookingService';
 import * as studentService from '../services/studentService';
+import * as instructorService from '../services/instructorService';
 import { adminStats, adminBookings, adminStudents, adminActivity } from '../data/adminData';
 
 const actionLabels = {
@@ -22,6 +23,7 @@ export default function DashboardPage() {
   const [liveStatValues, setLiveStatValues] = useState({
     students: null,
     courses: null,
+    instructors: null,
     bookings: null,
     revenue: null,
   });
@@ -31,20 +33,34 @@ export default function DashboardPage() {
   useEffect(() => {
     async function fetchLiveStats() {
       try {
-        const [students, bookings, courses] = await Promise.all([
+        const [students, bookings, courses, instructors] = await Promise.all([
           studentService.getStudents(),
           bookingService.getBookings(),
           courseService.getCourses(),
+          instructorService.getInstructors(),
         ]);
 
-        const revenueTotal = courses.reduce((sum, course) => {
+        const courseFeeMap = {};
+        courses.forEach((course) => {
+          const courseName = course.name || course.title;
           const price = Number(course.priceNPR ?? course.fee ?? course.price ?? 0);
-          return sum + (Number.isFinite(price) ? price : 0);
+          courseFeeMap[courseName] = Number.isFinite(price) ? price : 0;
+        });
+
+        const revenueTotal = bookings.reduce((sum, booking) => {
+          if (booking.payment_status === 'Paid') {
+            const fee = booking.fee != null && Number(booking.fee) > 0
+  ? Number(booking.fee)
+  : (courseFeeMap[booking.course] || 0);
+            return sum + fee;
+          }
+          return sum;
         }, 0);
 
         setLiveStatValues({
           students: students.length,
           courses: courses.length,
+          instructors: instructors.length,
           bookings: bookings.length,
           revenue: `$${revenueTotal.toLocaleString()}`,
         });
@@ -156,6 +172,9 @@ export default function DashboardPage() {
           if (stat.label === 'Total Courses' && liveStatValues.courses !== null) {
             value = String(liveStatValues.courses);
           }
+          if (stat.label === 'Total Instructors' && liveStatValues.instructors !== null) {
+            value = String(liveStatValues.instructors);
+          }
 
           if (stat.label === 'Total Bookings' && liveStatValues.bookings !== null) {
             value = String(liveStatValues.bookings);
@@ -185,9 +204,21 @@ export default function DashboardPage() {
             <span>Latest 7 entries</span>
           </div>
           <DataTable
-            columns={['Booking ID', 'Student', 'Course', 'Date', 'Status']}
+            columns={['Booking ID', 'Student', 'Course', 'Booking Status', 'Booking Date']}
             rows={recentBookings}
             onRowClick={openBookingDetails}
+            renderCell={(row, fieldKey) => {
+              if (fieldKey === 'booking_status') {
+                const statusClassMap = {
+                  Pending: 'badge-pending',
+                  Approved: 'badge-approved',
+                  Completed: 'badge-completed',
+                  Cancelled: 'badge-cancelled',
+                };
+                return <span className={`badge ${statusClassMap[row.booking_status] || 'badge-pending'}`}>{row.booking_status}</span>;
+              }
+              return undefined;
+            }}
           />
         </div>
 
