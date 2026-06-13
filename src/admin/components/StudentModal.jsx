@@ -7,8 +7,8 @@ const emptyStudent = {
   email: '',
   phone: '',
   address: '',
-  gender: 'Female',
-  dob: '',
+  preferred_time: '',
+  booking_date: '',
   course: '',
   emergency_contact: '',
   status: 'Active',
@@ -60,18 +60,21 @@ export default function StudentModal({ open, mode, student, onClose, onSubmit, c
         </div>
 
         <div className="student-form-row">
-          <label htmlFor="gender">Gender</label>
-          <select id="gender" name="gender" value={form.gender} onChange={handleChange} disabled={isView}>
-            <option>Female</option>
-            <option>Male</option>
-            <option>Other</option>
-          </select>
-        </div>
+  <label htmlFor="preferred_time">Preferred Time</label>
+  <select id="preferred_time" name="preferred_time" value={form.preferred_time} onChange={handleChange} disabled={isView}>
+    <option value="">Select time</option>
+    <option>7:00 AM – 9:00 AM</option>
+    <option>9:00 AM – 11:00 AM</option>
+    <option>11:00 AM – 1:00 PM</option>
+    <option>2:00 PM – 4:00 PM</option>
+    <option>4:00 PM – 6:00 PM</option>
+  </select>
+</div>
 
         <div className="student-form-row">
-          <label htmlFor="dob">Date of Birth</label>
-          <input id="dob" name="dob" type="date" value={form.dob} onChange={handleChange} disabled={isView} required />
-        </div>
+  <label htmlFor="booking_date">Booking Date</label>
+  <input id="booking_date" name="booking_date" type="date" value={form.booking_date} onChange={handleChange} disabled={isView} required />
+</div>
 
         <div className="student-form-row">
           <label htmlFor="course">Course</label>

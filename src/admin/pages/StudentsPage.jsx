@@ -1,7 +1,10 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../../firebase/firebaseConfig.js';
 import DataTable from '../components/DataTable';
 import StudentModal from '../components/StudentModal';
 import useStudents from '../hooks/useStudents';
+
 
 const statusOptions = ['All', 'Active', 'Pending', 'Inactive'];
 
@@ -14,10 +17,20 @@ export default function StudentsPage() {
   const [modalMode, setModalMode] = useState('add');
   const [selectedStudent, setSelectedStudent] = useState(null);
 
-  const courses = useMemo(() => {
-    const unique = Array.from(new Set(students.map((student) => student.course).filter(Boolean)));
-    return unique.sort();
-  }, [students]);
+ const [allCourses, setAllCourses] = useState([]);
+
+useEffect(() => {
+  async function fetchCourses() {
+    try {
+      const snap = await getDocs(collection(db, 'courses'));
+      const names = snap.docs.map((d) => d.data().name || d.data().title).filter(Boolean).sort();
+      setAllCourses(names);
+    } catch (err) {
+      console.error('fetchCourses error:', err);
+    }
+  }
+  fetchCourses();
+}, []);
 
   const filteredStudents = useMemo(() => {
     return students.filter((student) => {
@@ -37,16 +50,22 @@ export default function StudentsPage() {
   }, [students, search, statusFilter, courseFilter]);
 
   const openAddModal = () => {
-    setSelectedStudent(null);
-    setModalMode('add');
-    setModalOpen(true);
-  };
+  setSelectedStudent(null);
+  setModalMode('add');
+  setModalOpen(true);
+  setTimeout(() => {
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+  }, 100);
+};
 
-  const openEditModal = (student) => {
-    setSelectedStudent(student);
-    setModalMode('edit');
-    setModalOpen(true);
-  };
+const openEditModal = (student) => {
+  setSelectedStudent(student);
+  setModalMode('edit');
+  setModalOpen(true);
+  setTimeout(() => {
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+  }, 100);
+};
 
   const openViewModal = (student) => {
     setSelectedStudent(student);
@@ -115,9 +134,9 @@ export default function StudentsPage() {
           <label htmlFor="course-filter">Course</label>
           <select id="course-filter" value={courseFilter} onChange={(event) => setCourseFilter(event.target.value)}>
             <option value="All">All</option>
-            {courses.map((course) => (
-              <option key={course} value={course}>{course}</option>
-            ))}
+           {allCourses.map((course) => (
+  <option key={course} value={course}>{course}</option>
+))}
           </select>
         </div>
       </div>
@@ -161,7 +180,7 @@ export default function StudentsPage() {
         open={modalOpen}
         mode={modalMode}
         student={selectedStudent}
-        courses={courses}
+        courses={allCourses}
         onClose={() => setModalOpen(false)}
         onSubmit={handleSubmitStudent}
       />
