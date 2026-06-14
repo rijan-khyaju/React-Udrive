@@ -30,11 +30,19 @@ export default function StudentModal({ open, mode, student, onClose, onSubmit, c
   };
 
   const handleSubmit = (event) => {
-    event.preventDefault();
-    if (!isView) {
-      onSubmit(form);
+  event.preventDefault();
+  if (!isView) {
+    if (!/^(97|98)\d{8}$/.test(form.phone)) {
+      alert('Phone must be a valid 10-digit Nepali number starting with 97 or 98');
+      return;
     }
-  };
+    if (form.booking_date < new Date().toISOString().split('T')[0]) {
+      alert('Booking date cannot be in the past');
+      return;
+    }
+    onSubmit(form);
+  }
+};
 
   return (
     <Modal open={open} title={isView ? 'Student Details' : mode === 'edit' ? 'Edit Student' : 'Add Student'} onClose={onClose}>
@@ -51,7 +59,16 @@ export default function StudentModal({ open, mode, student, onClose, onSubmit, c
 
         <div className="student-form-row">
           <label htmlFor="phone">Phone</label>
-          <input id="phone" name="phone" type="tel" value={form.phone} onChange={handleChange} disabled={isView} required />
+          <input
+  id="phone" name="phone" type="tel"
+  value={form.phone}
+  onChange={(e) => {
+    const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+    setForm((prev) => ({ ...prev, phone: val }));
+  }}
+  disabled={isView} required
+  placeholder="98XXXXXXXX"
+/>
         </div>
 
         <div className="student-form-row">
@@ -73,7 +90,19 @@ export default function StudentModal({ open, mode, student, onClose, onSubmit, c
 
         <div className="student-form-row">
   <label htmlFor="booking_date">Booking Date</label>
-  <input id="booking_date" name="booking_date" type="date" value={form.booking_date} onChange={handleChange} disabled={isView} required />
+  <input
+  id="booking_date" name="booking_date" type="date"
+  value={form.booking_date}
+  onChange={(e) => {
+    const val = e.target.value;
+    const year = val.split('-')[0];
+    if (year.length > 4) return;
+    setForm((prev) => ({ ...prev, booking_date: val }));
+  }}
+  disabled={isView} required
+  min={new Date().toISOString().split('T')[0]}
+  max="2030-12-31"
+/>
 </div>
 
         <div className="student-form-row">
@@ -88,7 +117,16 @@ export default function StudentModal({ open, mode, student, onClose, onSubmit, c
 
         <div className="student-form-row">
           <label htmlFor="emergency_contact">Emergency Contact</label>
-          <input id="emergency_contact" name="emergency_contact" value={form.emergency_contact} onChange={handleChange} disabled={isView} required />
+          <input
+  id="emergency_contact" name="emergency_contact"
+  value={form.emergency_contact}
+  onChange={(e) => {
+    const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+    setForm((prev) => ({ ...prev, emergency_contact: val }));
+  }}
+  disabled={isView} required
+  placeholder="98XXXXXXXX"
+/>
         </div>
 
         <div className="student-form-actions">
