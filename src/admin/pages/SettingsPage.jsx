@@ -3,6 +3,8 @@ import { getAuth, reauthenticateWithCredential, EmailAuthProvider, updatePasswor
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebase/firebaseConfig.js';
 import { useAuth } from '../auth/AuthContext';
+import { getHeroContent, updateHeroContent, getSectionContent, updateSectionContent } from '../../services/siteContentService.js';
+import { testimonials as defaultTestimonials } from '../../data';
 
 const initialNotificationSettings = {
   emailNotifications: true,
@@ -18,7 +20,50 @@ export default function SettingsPage() {
   const [password, setPassword] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
   const [notifications, setNotifications] = useState(initialNotificationSettings);
   const [theme, setTheme] = useState('light');
-  const [saveStatus, setSaveStatus] = useState({ profile: '', password: '', notifications: '', theme: '' });
+  const [saveStatus, setSaveStatus] = useState({ profile: '', password: '', notifications: '', theme: '', hero: '', about: '', whyUs: '', cta: '', testimonials: '', features: '' });
+  const [heroContent, setHeroContent] = useState({
+    badgeText: '',
+    titleLine1: '',
+    titleAccent: '',
+    titleLine2: '',
+    subtitle: '',
+  });
+  const [aboutContent, setAboutContent] = useState({
+    sectionLabel: 'Who We Are',
+    titleMain: 'A Perfect Driving School With',
+    titleAccent: 'Expert Instructors',
+    paragraph1: "UDrive was founded with one goal: to make Nepal's roads safer by training confident, responsible drivers. With 15+ years of experience, we've become the valley's most trusted driving school.",
+    paragraph2: "Our government-certified instructors take a patient, structured approach — no rushing, no pressure. Just clear teaching in well-maintained dual-control vehicles.",
+    buttonText: 'Book a Free Trial',
+  });
+  const [whyUsContent, setWhyUsContent] = useState({
+    sectionLabel: 'Why Choose UDrive',
+    titleMain: 'Why Students',
+    titleAccent: 'Trust Us',
+  });
+  const [ctaContent, setCtaContent] = useState({
+    titleLine1: 'Ready to Get Your',
+    titleLine2: 'Driving License?',
+    subtitle: 'Join 8,500+ students who trusted UDrive. First lesson is free.',
+    button1Text: 'Book Free Trial',
+    button2Text: 'View Courses',
+  });
+  const [testimonialsContent, setTestimonialsContent] = useState({
+    sectionLabel: 'Student Stories',
+    titleMain: 'What Our',
+    titleAccent: 'Students Say',
+  });
+  const [testimonialsList, setTestimonialsList] = useState({ items: defaultTestimonials });
+  const [aboutFeatures, setAboutFeatures] = useState({
+    items: [
+      { icon: '✅', text: 'Govt-Certified Instructors' },
+      { icon: '🚗', text: 'Dual-Control Cars' },
+      { icon: '📅', text: 'Flexible Timings' },
+      { icon: '📋', text: '97% Pass Rate' },
+      { icon: '🏫', text: 'Classroom Theory' },
+      { icon: '📱', text: 'Online Progress Tracking' },
+    ],
+  });
 
   useEffect(() => {
     if (user) {
@@ -34,6 +79,120 @@ export default function SettingsPage() {
     const savedTheme = localStorage.getItem('adminTheme') || 'light';
     setTheme(savedTheme);
     document.documentElement.setAttribute('data-theme', savedTheme);
+  }, []);
+
+  useEffect(() => {
+    async function loadHeroContent() {
+      try {
+        const hero = await getHeroContent();
+        if (hero) {
+          setHeroContent({
+            badgeText: hero.badgeText ?? '',
+            titleLine1: hero.titleLine1 ?? '',
+            titleAccent: hero.titleAccent ?? '',
+            titleLine2: hero.titleLine2 ?? '',
+            subtitle: hero.subtitle ?? '',
+          });
+        }
+      } catch (error) {
+        console.error('[SettingsPage] loadHeroContent error:', error);
+      }
+    }
+
+    async function loadAboutContent() {
+      try {
+        const about = await getSectionContent('homepageAbout');
+        if (about) {
+          setAboutContent({
+            sectionLabel: about.sectionLabel ?? 'Who We Are',
+            titleMain: about.titleMain ?? 'A Perfect Driving School With',
+            titleAccent: about.titleAccent ?? 'Expert Instructors',
+            paragraph1: about.paragraph1 ?? "UDrive was founded with one goal: to make Nepal's roads safer by training confident, responsible drivers. With 15+ years of experience, we've become the valley's most trusted driving school.",
+            paragraph2: about.paragraph2 ?? "Our government-certified instructors take a patient, structured approach — no rushing, no pressure. Just clear teaching in well-maintained dual-control vehicles.",
+            buttonText: about.buttonText ?? 'Book a Free Trial',
+          });
+        }
+      } catch (error) {
+        console.error('[SettingsPage] loadAboutContent error:', error);
+      }
+    }
+
+    async function loadWhyUsContent() {
+      try {
+        const whyUs = await getSectionContent('homepageWhyUs');
+        if (whyUs) {
+          setWhyUsContent({
+            sectionLabel: whyUs.sectionLabel ?? 'Why Choose UDrive',
+            titleMain: whyUs.titleMain ?? 'Why Students',
+            titleAccent: whyUs.titleAccent ?? 'Trust Us',
+          });
+        }
+      } catch (error) {
+        console.error('[SettingsPage] loadWhyUsContent error:', error);
+      }
+    }
+
+    async function loadCtaContent() {
+      try {
+        const cta = await getSectionContent('homepageCTA');
+        if (cta) {
+          setCtaContent({
+            titleLine1: cta.titleLine1 ?? 'Ready to Get Your',
+            titleLine2: cta.titleLine2 ?? 'Driving License?',
+            subtitle: cta.subtitle ?? 'Join 8,500+ students who trusted UDrive. First lesson is free.',
+            button1Text: cta.button1Text ?? 'Book Free Trial',
+            button2Text: cta.button2Text ?? 'View Courses',
+          });
+        }
+      } catch (error) {
+        console.error('[SettingsPage] loadCtaContent error:', error);
+      }
+    }
+
+    async function loadTestimonialsContent() {
+      try {
+        const t = await getSectionContent('homepageTestimonials');
+        if (t) {
+          setTestimonialsContent({
+            sectionLabel: t.sectionLabel ?? 'Student Stories',
+            titleMain: t.titleMain ?? 'What Our',
+            titleAccent: t.titleAccent ?? 'Students Say',
+          });
+        }
+      } catch (error) {
+        console.error('[SettingsPage] loadTestimonialsContent error:', error);
+      }
+    }
+
+    async function loadAboutFeaturesContent() {
+      try {
+        const f = await getSectionContent('homepageAboutFeatures');
+        if (f && Array.isArray(f.items)) {
+          setAboutFeatures({ items: f.items });
+        }
+      } catch (error) {
+        console.error('[SettingsPage] loadAboutFeaturesContent error:', error);
+      }
+    }
+
+    async function loadTestimonialsListContent() {
+      try {
+        const l = await getSectionContent('homepageTestimonialsList');
+        if (l && Array.isArray(l.items)) {
+          setTestimonialsList({ items: l.items });
+        }
+      } catch (error) {
+        console.error('[SettingsPage] loadTestimonialsListContent error:', error);
+      }
+    }
+
+    loadHeroContent();
+    loadAboutContent();
+    loadWhyUsContent();
+    loadCtaContent();
+    loadTestimonialsContent();
+    loadAboutFeaturesContent();
+    loadTestimonialsListContent();
   }, []);
 
   const handleSaveProfile = async () => {
@@ -93,9 +252,79 @@ export default function SettingsPage() {
     setTimeout(() => setSaveStatus((c) => ({ ...c, password: '' })), 3000);
   };
 
+  const handleSaveHeroContent = async () => {
+    try {
+      await updateHeroContent(heroContent);
+      setSaveStatus((current) => ({ ...current, hero: 'Hero content saved successfully!' }));
+    } catch (error) {
+      setSaveStatus((current) => ({ ...current, hero: 'Error saving hero content.' }));
+    }
+    setTimeout(() => setSaveStatus((current) => ({ ...current, hero: '' })), 3000);
+  };
+
+  const handleSaveAboutContent = async () => {
+    try {
+      await updateSectionContent('homepageAbout', aboutContent);
+      setSaveStatus((current) => ({ ...current, about: 'About content saved successfully!' }));
+    } catch (error) {
+      setSaveStatus((current) => ({ ...current, about: 'Error saving about content.' }));
+    }
+    setTimeout(() => setSaveStatus((current) => ({ ...current, about: '' })), 3000);
+  };
+
+  const handleSaveWhyUsContent = async () => {
+    try {
+      await updateSectionContent('homepageWhyUs', whyUsContent);
+      setSaveStatus((current) => ({ ...current, whyUs: 'Why Us content saved successfully!' }));
+    } catch (error) {
+      setSaveStatus((current) => ({ ...current, whyUs: 'Error saving Why Us content.' }));
+    }
+    setTimeout(() => setSaveStatus((current) => ({ ...current, whyUs: '' })), 3000);
+  };
+
+  const handleSaveCtaContent = async () => {
+    try {
+      await updateSectionContent('homepageCTA', ctaContent);
+      setSaveStatus((current) => ({ ...current, cta: 'CTA content saved successfully!' }));
+    } catch (error) {
+      setSaveStatus((current) => ({ ...current, cta: 'Error saving CTA content.' }));
+    }
+    setTimeout(() => setSaveStatus((current) => ({ ...current, cta: '' })), 3000);
+  };
+
+  const handleSaveTestimonialsContent = async () => {
+    try {
+      await updateSectionContent('homepageTestimonials', testimonialsContent);
+      setSaveStatus((current) => ({ ...current, testimonials: 'Testimonials header saved successfully!' }));
+    } catch (error) {
+      setSaveStatus((current) => ({ ...current, testimonials: 'Error saving testimonials header.' }));
+    }
+    setTimeout(() => setSaveStatus((current) => ({ ...current, testimonials: '' })), 3000);
+  };
+
+  const handleSaveAboutFeaturesContent = async () => {
+    try {
+      await updateSectionContent('homepageAboutFeatures', aboutFeatures);
+      setSaveStatus((current) => ({ ...current, features: 'About features saved successfully!' }));
+    } catch (error) {
+      setSaveStatus((current) => ({ ...current, features: 'Error saving about features.' }));
+    }
+    setTimeout(() => setSaveStatus((current) => ({ ...current, features: '' })), 3000);
+  };
+
   const saveSection = (section) => {
     setSaveStatus((current) => ({ ...current, [section]: 'Saved successfully' }));
     setTimeout(() => setSaveStatus((current) => ({ ...current, [section]: '' })), 2000);
+  };
+
+  const handleSaveTestimonialsListContent = async () => {
+    try {
+      await updateSectionContent('homepageTestimonialsList', testimonialsList);
+      setSaveStatus((current) => ({ ...current, testimonials: 'Testimonials saved successfully!' }));
+    } catch (error) {
+      setSaveStatus((current) => ({ ...current, testimonials: 'Error saving testimonials.' }));
+    }
+    setTimeout(() => setSaveStatus((current) => ({ ...current, testimonials: '' })), 3000);
   };
 
   return (
@@ -262,6 +491,392 @@ export default function SettingsPage() {
           </form>
         </div>
       </div>
+
+      <div className="admin-grid admin-grid-2 report-sections">
+        <div className="admin-card settings-card">
+          <div className="admin-card-header">
+            <h3>Homepage Hero Content</h3>
+            <span>Manage homepage hero messaging</span>
+          </div>
+          <form className="settings-form" onSubmit={(e) => e.preventDefault()}>
+            <div className="settings-form-row">
+              <label htmlFor="hero-badge">Badge Text</label>
+              <input
+                id="hero-badge"
+                type="text"
+                value={heroContent.badgeText}
+                onChange={(e) => setHeroContent({ ...heroContent, badgeText: e.target.value })}
+              />
+            </div>
+            <div className="settings-form-row">
+              <label htmlFor="hero-title-line1">Title Line 1</label>
+              <input
+                id="hero-title-line1"
+                type="text"
+                value={heroContent.titleLine1}
+                onChange={(e) => setHeroContent({ ...heroContent, titleLine1: e.target.value })}
+              />
+            </div>
+            <div className="settings-form-row">
+              <label htmlFor="hero-title-accent">Title Accent Word</label>
+              <input
+                id="hero-title-accent"
+                type="text"
+                value={heroContent.titleAccent}
+                onChange={(e) => setHeroContent({ ...heroContent, titleAccent: e.target.value })}
+              />
+            </div>
+            <div className="settings-form-row">
+              <label htmlFor="hero-title-line2">Title Line 2</label>
+              <input
+                id="hero-title-line2"
+                type="text"
+                value={heroContent.titleLine2}
+                onChange={(e) => setHeroContent({ ...heroContent, titleLine2: e.target.value })}
+              />
+            </div>
+            <div className="settings-form-row">
+              <label htmlFor="hero-subtitle">Subtitle</label>
+              <textarea
+                id="hero-subtitle"
+                value={heroContent.subtitle}
+                onChange={(e) => setHeroContent({ ...heroContent, subtitle: e.target.value })}
+                rows={4}
+              />
+            </div>
+            <div className="settings-actions">
+              <button className="btn-primary" type="button" onClick={handleSaveHeroContent}>
+                Save Hero Content
+              </button>
+              {saveStatus.hero && <span className="save-message">{saveStatus.hero}</span>}
+            </div>
+          </form>
+        </div>
+
+        <div className="admin-card settings-card">
+          <div className="admin-card-header">
+            <h3>Homepage About Content</h3>
+            <span>Manage homepage About section text</span>
+          </div>
+          <form className="settings-form" onSubmit={(e) => e.preventDefault()}>
+            <div className="settings-form-row">
+              <label htmlFor="about-section-label">Section Label</label>
+              <input
+                id="about-section-label"
+                type="text"
+                value={aboutContent.sectionLabel}
+                onChange={(e) => setAboutContent({ ...aboutContent, sectionLabel: e.target.value })}
+              />
+            </div>
+            <div className="settings-form-row">
+              <label htmlFor="about-title-main">Title Main</label>
+              <input
+                id="about-title-main"
+                type="text"
+                value={aboutContent.titleMain}
+                onChange={(e) => setAboutContent({ ...aboutContent, titleMain: e.target.value })}
+              />
+            </div>
+            <div className="settings-form-row">
+              <label htmlFor="about-title-accent">Title Accent</label>
+              <input
+                id="about-title-accent"
+                type="text"
+                value={aboutContent.titleAccent}
+                onChange={(e) => setAboutContent({ ...aboutContent, titleAccent: e.target.value })}
+              />
+            </div>
+            <div className="settings-form-row">
+              <label htmlFor="about-paragraph1">Paragraph 1</label>
+              <textarea
+                id="about-paragraph1"
+                value={aboutContent.paragraph1}
+                onChange={(e) => setAboutContent({ ...aboutContent, paragraph1: e.target.value })}
+                rows={3}
+              />
+            </div>
+            <div className="settings-form-row">
+              <label htmlFor="about-paragraph2">Paragraph 2</label>
+              <textarea
+                id="about-paragraph2"
+                value={aboutContent.paragraph2}
+                onChange={(e) => setAboutContent({ ...aboutContent, paragraph2: e.target.value })}
+                rows={3}
+              />
+            </div>
+            <div className="settings-form-row">
+              <label htmlFor="about-button-text">Button Text</label>
+              <input
+                id="about-button-text"
+                type="text"
+                value={aboutContent.buttonText}
+                onChange={(e) => setAboutContent({ ...aboutContent, buttonText: e.target.value })}
+              />
+            </div>
+            <div className="settings-actions">
+              <button className="btn-primary" type="button" onClick={handleSaveAboutContent}>
+                Save About Content
+              </button>
+              {saveStatus.about && <span className="save-message">{saveStatus.about}</span>}
+            </div>
+          </form>
+        </div>
+        <div className="admin-card settings-card">
+          <div className="admin-card-header">
+            <h3>Homepage About Features</h3>
+            <span>Manage the About section feature items</span>
+          </div>
+          <form className="settings-form" onSubmit={(e) => e.preventDefault()}>
+            {aboutFeatures.items.map((it, idx) => (
+              <div className="settings-form-row" key={idx} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <div style={{ flex: '0 0 64px' }}>
+                  <label>Icon</label>
+                  <input type="text" value={it.icon} onChange={(e) => {
+                    const copy = { ...aboutFeatures };
+                    copy.items = copy.items.map((x, i) => i === idx ? { ...x, icon: e.target.value } : x);
+                    setAboutFeatures(copy);
+                  }} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label>Text</label>
+                  <input type="text" value={it.text} onChange={(e) => {
+                    const copy = { ...aboutFeatures };
+                    copy.items = copy.items.map((x, i) => i === idx ? { ...x, text: e.target.value } : x);
+                    setAboutFeatures(copy);
+                  }} />
+                </div>
+                <div style={{ flex: '0 0 96px' }}>
+                  <label>&nbsp;</label>
+                  <button className="btn-primary" type="button" onClick={() => {
+                    const copy = { ...aboutFeatures };
+                    copy.items = copy.items.filter((_, i) => i !== idx);
+                    setAboutFeatures(copy);
+                  }}>Remove</button>
+                </div>
+              </div>
+            ))}
+            <div className="settings-form-row">
+              <button className="btn-primary" type="button" onClick={() => {
+                setAboutFeatures((prev) => ({ items: [...prev.items, { icon: '', text: '' }] }));
+              }}>Add Item</button>
+            </div>
+            <div className="settings-actions">
+              <button className="btn-primary" type="button" onClick={handleSaveAboutFeaturesContent}>
+                Save Features
+              </button>
+              {saveStatus.features && <span className="save-message">{saveStatus.features}</span>}
+            </div>
+          </form>
+        </div>
+
+        <div className="admin-card settings-card">
+          <div className="admin-card-header">
+            <h3>Homepage Testimonials</h3>
+            <span>Manage the testimonials cards list shown on the homepage</span>
+          </div>
+          <form className="settings-form" onSubmit={(e) => e.preventDefault()}>
+            {testimonialsList.items.map((t, idx) => (
+              <div className="settings-form-row" key={t.id || idx} style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                <div style={{ flex: 1 }}>
+                  <label>Name</label>
+                  <input type="text" value={t.name} onChange={(e) => {
+                    const copy = { ...testimonialsList };
+                    copy.items = copy.items.map((x, i) => i === idx ? { ...x, name: e.target.value } : x);
+                    setTestimonialsList(copy);
+                  }} />
+                  <label>Role</label>
+                  <input type="text" value={t.role} onChange={(e) => {
+                    const copy = { ...testimonialsList };
+                    copy.items = copy.items.map((x, i) => i === idx ? { ...x, role: e.target.value } : x);
+                    setTestimonialsList(copy);
+                  }} />
+                  <label>Text</label>
+                  <textarea rows={3} value={t.text} onChange={(e) => {
+                    const copy = { ...testimonialsList };
+                    copy.items = copy.items.map((x, i) => i === idx ? { ...x, text: e.target.value } : x);
+                    setTestimonialsList(copy);
+                  }} />
+                </div>
+                <div style={{ flex: '0 0 160px' }}>
+                  <label>Stars (1-5)</label>
+                  <input type="number" min={1} max={5} value={t.stars} onChange={(e) => {
+                    const v = Math.max(1, Math.min(5, Number(e.target.value) || 1));
+                    const copy = { ...testimonialsList };
+                    copy.items = copy.items.map((x, i) => i === idx ? { ...x, stars: v } : x);
+                    setTestimonialsList(copy);
+                  }} />
+                  <label>Initials</label>
+                  <input type="text" value={t.initials} onChange={(e) => {
+                    const copy = { ...testimonialsList };
+                    copy.items = copy.items.map((x, i) => i === idx ? { ...x, initials: e.target.value } : x);
+                    setTestimonialsList(copy);
+                  }} />
+                  <div style={{ marginTop: 8 }}>
+                    <button className="btn-primary" type="button" onClick={() => {
+                      const copy = { ...testimonialsList };
+                      copy.items = copy.items.filter((_, i) => i !== idx);
+                      setTestimonialsList(copy);
+                    }}>Remove</button>
+                  </div>
+                </div>
+              </div>
+            ))}
+            <div className="settings-form-row">
+              <button className="btn-primary" type="button" onClick={() => {
+                setTestimonialsList((prev) => ({ items: [...prev.items, { id: Date.now(), name: '', role: '', text: '', stars: 5, initials: '' }] }));
+              }}>Add Testimonial</button>
+            </div>
+            <div className="settings-actions">
+              <button className="btn-primary" type="button" onClick={handleSaveTestimonialsListContent}>
+                Save Testimonials
+              </button>
+              {saveStatus.testimonials && <span className="save-message">{saveStatus.testimonials}</span>}
+            </div>
+          </form>
+        </div>
+        <div className="admin-card settings-card">
+          <div className="admin-card-header">
+            <h3>Homepage Why Us Content</h3>
+            <span>Manage homepage Why Us section text</span>
+          </div>
+          <form className="settings-form" onSubmit={(e) => e.preventDefault()}>
+            <div className="settings-form-row">
+              <label htmlFor="whyus-section-label">Section Label</label>
+              <input
+                id="whyus-section-label"
+                type="text"
+                value={whyUsContent.sectionLabel}
+                onChange={(e) => setWhyUsContent({ ...whyUsContent, sectionLabel: e.target.value })}
+              />
+            </div>
+            <div className="settings-form-row">
+              <label htmlFor="whyus-title-main">Title Main</label>
+              <input
+                id="whyus-title-main"
+                type="text"
+                value={whyUsContent.titleMain}
+                onChange={(e) => setWhyUsContent({ ...whyUsContent, titleMain: e.target.value })}
+              />
+            </div>
+            <div className="settings-form-row">
+              <label htmlFor="whyus-title-accent">Title Accent</label>
+              <input
+                id="whyus-title-accent"
+                type="text"
+                value={whyUsContent.titleAccent}
+                onChange={(e) => setWhyUsContent({ ...whyUsContent, titleAccent: e.target.value })}
+              />
+            </div>
+            <div className="settings-actions">
+              <button className="btn-primary" type="button" onClick={handleSaveWhyUsContent}>
+                Save Why Us Content
+              </button>
+              {saveStatus.whyUs && <span className="save-message">{saveStatus.whyUs}</span>}
+            </div>
+          </form>
+        </div>
+        <div className="admin-card settings-card">
+          <div className="admin-card-header">
+            <h3>Homepage CTA Banner Content</h3>
+            <span>Manage homepage CTA banner text</span>
+          </div>
+          <form className="settings-form" onSubmit={(e) => e.preventDefault()}>
+            <div className="settings-form-row">
+              <label htmlFor="cta-title-line1">Title Line 1</label>
+              <input
+                id="cta-title-line1"
+                type="text"
+                value={ctaContent.titleLine1}
+                onChange={(e) => setCtaContent({ ...ctaContent, titleLine1: e.target.value })}
+              />
+            </div>
+            <div className="settings-form-row">
+              <label htmlFor="cta-title-line2">Title Line 2</label>
+              <input
+                id="cta-title-line2"
+                type="text"
+                value={ctaContent.titleLine2}
+                onChange={(e) => setCtaContent({ ...ctaContent, titleLine2: e.target.value })}
+              />
+            </div>
+            <div className="settings-form-row">
+              <label htmlFor="cta-subtitle">Subtitle</label>
+              <input
+                id="cta-subtitle"
+                type="text"
+                value={ctaContent.subtitle}
+                onChange={(e) => setCtaContent({ ...ctaContent, subtitle: e.target.value })}
+              />
+            </div>
+            <div className="settings-form-row">
+              <label htmlFor="cta-button1-text">Button 1 Text</label>
+              <input
+                id="cta-button1-text"
+                type="text"
+                value={ctaContent.button1Text}
+                onChange={(e) => setCtaContent({ ...ctaContent, button1Text: e.target.value })}
+              />
+            </div>
+            <div className="settings-form-row">
+              <label htmlFor="cta-button2-text">Button 2 Text</label>
+              <input
+                id="cta-button2-text"
+                type="text"
+                value={ctaContent.button2Text}
+                onChange={(e) => setCtaContent({ ...ctaContent, button2Text: e.target.value })}
+              />
+            </div>
+            <div className="settings-actions">
+              <button className="btn-primary" type="button" onClick={handleSaveCtaContent}>
+                Save CTA Content
+              </button>
+              {saveStatus.cta && <span className="save-message">{saveStatus.cta}</span>}
+            </div>
+          </form>
+        </div>
+      </div>
+
+        <div className="admin-card settings-card">
+          <div className="admin-card-header">
+            <h3>Homepage Testimonials Header</h3>
+            <span>Manage homepage Testimonials section header</span>
+          </div>
+          <form className="settings-form" onSubmit={(e) => e.preventDefault()}>
+            <div className="settings-form-row">
+              <label htmlFor="testimonials-section-label">Section Label</label>
+              <input
+                id="testimonials-section-label"
+                type="text"
+                value={testimonialsContent.sectionLabel}
+                onChange={(e) => setTestimonialsContent({ ...testimonialsContent, sectionLabel: e.target.value })}
+              />
+            </div>
+            <div className="settings-form-row">
+              <label htmlFor="testimonials-title-main">Title Main</label>
+              <input
+                id="testimonials-title-main"
+                type="text"
+                value={testimonialsContent.titleMain}
+                onChange={(e) => setTestimonialsContent({ ...testimonialsContent, titleMain: e.target.value })}
+              />
+            </div>
+            <div className="settings-form-row">
+              <label htmlFor="testimonials-title-accent">Title Accent</label>
+              <input
+                id="testimonials-title-accent"
+                type="text"
+                value={testimonialsContent.titleAccent}
+                onChange={(e) => setTestimonialsContent({ ...testimonialsContent, titleAccent: e.target.value })}
+              />
+            </div>
+            <div className="settings-actions">
+              <button className="btn-primary" type="button" onClick={handleSaveTestimonialsContent}>
+                Save Testimonials Header
+              </button>
+              {saveStatus.testimonials && <span className="save-message">{saveStatus.testimonials}</span>}
+            </div>
+          </form>
+        </div>
 
       <div className="admin-card settings-card system-info-card">
         <div className="admin-card-header">

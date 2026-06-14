@@ -42,18 +42,11 @@ export default function DashboardPage() {
           instructorService.getInstructors(),
         ]);
 
-        const courseFeeMap = {};
-        courses.forEach((course) => {
-          const courseName = course.name || course.title;
-          const price = Number(course.priceNPR ?? course.fee ?? course.price ?? 0);
-          courseFeeMap[courseName] = Number.isFinite(price) ? price : 0;
-        });
-
         const revenueTotal = bookings.reduce((sum, booking) => {
           if (booking.payment_status === 'Paid') {
             const fee = booking.fee != null && Number(booking.fee) > 0
               ? Number(booking.fee)
-              : (courseFeeMap[booking.course] || 0);
+              : 0;
             return sum + fee;
           }
           return sum;

@@ -3,6 +3,7 @@ import { collection, getDocs } from 'firebase/firestore';
 import { db, isFirebaseConfigured } from '../firebase/firebaseConfig.js';
 import CourseCard from '../components/CourseCard';
 import usePublicCourses from '../hooks/usePublicCourses';
+import { getHeroContent, getSectionContent } from '../services/siteContentService.js';
 import { testimonials, whyUs } from '../data';
 
 function useCountUp(target, duration = 2000, active = false) {
@@ -52,10 +53,104 @@ export default function HomePage({ setPage }) {
   const [instructors, setInstructors] = useState([]);
   const [instructorsLoading, setInstructorsLoading] = useState(true);
   const [instructorsError, setInstructorsError] = useState(null);
+  const [heroContent, setHeroContent] = useState(null);
+  const [aboutContent, setAboutContent] = useState(null);
+  const [whyUsContent, setWhyUsContent] = useState(null);
+  const [ctaContent, setCtaContent] = useState(null);
+  const [testimonialsContent, setTestimonialsContent] = useState(null);
+  const [testimonialsListData, setTestimonialsListData] = useState(null);
+  const [aboutFeaturesData, setAboutFeaturesData] = useState(null);
 
   useEffect(() => {
     const timer = setTimeout(() => setStatsActive(true), 400);
     return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    async function loadHeroContent() {
+      try {
+        const content = await getHeroContent();
+        if (content) {
+          setHeroContent(content);
+        }
+      } catch (error) {
+        console.error('[HomePage] loadHeroContent error:', error);
+      }
+    }
+
+    async function loadAboutContent() {
+      try {
+        const content = await getSectionContent('homepageAbout');
+        if (content) {
+          setAboutContent(content);
+        }
+      } catch (error) {
+        console.error('[HomePage] loadAboutContent error:', error);
+      }
+    }
+
+    async function loadWhyUsContent() {
+      try {
+        const content = await getSectionContent('homepageWhyUs');
+        if (content) {
+          setWhyUsContent(content);
+        }
+      } catch (error) {
+        console.error('[HomePage] loadWhyUsContent error:', error);
+      }
+    }
+
+    async function loadCtaContent() {
+      try {
+        const content = await getSectionContent('homepageCTA');
+        if (content) {
+          setCtaContent(content);
+        }
+      } catch (error) {
+        console.error('[HomePage] loadCtaContent error:', error);
+      }
+    }
+
+    async function loadTestimonialsContent() {
+      try {
+        const content = await getSectionContent('homepageTestimonials');
+        if (content) {
+          setTestimonialsContent(content);
+        }
+      } catch (error) {
+        console.error('[HomePage] loadTestimonialsContent error:', error);
+      }
+    }
+
+    async function loadTestimonialsListContent() {
+      try {
+        const content = await getSectionContent('homepageTestimonialsList');
+        if (content && Array.isArray(content.items)) {
+          setTestimonialsListData(content);
+        }
+      } catch (error) {
+        console.error('[HomePage] loadTestimonialsListContent error:', error);
+      }
+    }
+
+    async function loadAboutFeaturesContent() {
+      try {
+        const content = await getSectionContent('homepageAboutFeatures');
+        if (content && Array.isArray(content.items)) {
+          setAboutFeaturesData(content);
+        }
+      } catch (error) {
+        console.error('[HomePage] loadAboutFeaturesContent error:', error);
+      }
+    }
+
+    loadHeroContent();
+    loadAboutContent();
+    loadWhyUsContent();
+    loadCtaContent();
+    loadTestimonialsContent();
+    loadTestimonialsListContent();
+    loadAboutFeaturesContent();
   }, []);
 
   useEffect(() => {
@@ -97,14 +192,16 @@ export default function HomePage({ setPage }) {
         <div className="hero-bg" />
         <div className="container">
           <div className="hero-content">
-            <div className="hero-badge">🏆 Nepal's #1 Rated Driving School</div>
+            <div className="hero-badge">
+              {heroContent?.badgeText ?? "🏆 Nepal's #1 Rated Driving School"}
+            </div>
             <h1 className="hero-title">
-              Learn To Drive
-              <span className="accent">Confidently</span>
-              & Safely
+              {heroContent?.titleLine1 ?? 'Learn To Drive'}
+              <span className="accent">{heroContent?.titleAccent ?? 'Confidently'}</span>
+              {heroContent?.titleLine2 ?? ' & Safely'}
             </h1>
             <p className="hero-sub">
-              Expert-led driving courses designed for beginners to advanced drivers. Flexible scheduling, certified instructors, and a 97% first-attempt pass rate.
+              {heroContent?.subtitle ?? 'Expert-led driving courses designed for beginners to advanced drivers. Flexible scheduling, certified instructors, and a 97% first-attempt pass rate.'}
             </p>
             <div className="hero-actions">
               <button className="btn btn-yellow" onClick={() => setPage('courses')}>Browse Courses →</button>
@@ -143,30 +240,36 @@ export default function HomePage({ setPage }) {
               </div>
             </div>
             <div className="about-body">
-              <span className="section-label">Who We Are</span>
-              <h2 className="section-title">A Perfect Driving School With <span>Expert Instructors</span></h2>
+              <span className="section-label">
+                {aboutContent?.sectionLabel ?? 'Who We Are'}
+              </span>
+              <h2 className="section-title">
+                {aboutContent?.titleMain ?? 'A Perfect Driving School With'} <span>{aboutContent?.titleAccent ?? 'Expert Instructors'}</span>
+              </h2>
               <p style={{ marginTop: 20 }}>
-                UDrive was founded with one goal: to make Nepal's roads safer by training confident, responsible drivers. With 15+ years of experience, we've become the valley's most trusted driving school.
+                {aboutContent?.paragraph1 ?? "UDrive was founded with one goal: to make Nepal's roads safer by training confident, responsible drivers. With 15+ years of experience, we've become the valley's most trusted driving school."}
               </p>
               <p>
-                Our government-certified instructors take a patient, structured approach — no rushing, no pressure. Just clear teaching in well-maintained dual-control vehicles.
+                {aboutContent?.paragraph2 ?? "Our government-certified instructors take a patient, structured approach — no rushing, no pressure. Just clear teaching in well-maintained dual-control vehicles."}
               </p>
               <div className="about-features">
-                {[
+                {(aboutFeaturesData?.items ?? [
                   { icon: '✅', text: 'Govt-Certified Instructors' },
                   { icon: '🚗', text: 'Dual-Control Cars' },
                   { icon: '📅', text: 'Flexible Timings' },
                   { icon: '📋', text: '97% Pass Rate' },
                   { icon: '🏫', text: 'Classroom Theory' },
                   { icon: '📱', text: 'Online Progress Tracking' },
-                ].map((f, i) => (
+                ]).map((f, i) => (
                   <div key={i} className="about-feature">
                     <div className="about-feature-icon">{f.icon}</div>
                     <div className="about-feature-text">{f.text}</div>
                   </div>
                 ))}
               </div>
-              <button className="btn btn-yellow" onClick={() => setPage('booking')}>Book a Free Trial</button>
+              <button className="btn btn-yellow" onClick={() => setPage('booking')}>
+                {aboutContent?.buttonText ?? 'Book a Free Trial'}
+              </button>
             </div>
           </div>
         </div>
@@ -231,8 +334,10 @@ export default function HomePage({ setPage }) {
       <section className="why">
         <div className="container">
           <div className="why-header">
-            <span className="section-label">Why Choose UDrive</span>
-            <h2 className="section-title" style={{ color: 'var(--white)' }}>Why Students <span>Trust Us</span></h2>
+            <span className="section-label">{whyUsContent?.sectionLabel ?? 'Why Choose UDrive'}</span>
+            <h2 className="section-title" style={{ color: 'var(--white)' }}>
+              {whyUsContent?.titleMain ?? 'Why Students'} <span>{whyUsContent?.titleAccent ?? 'Trust Us'}</span>
+            </h2>
           </div>
           <div className="why-grid">
             {whyUs.map((w, i) => (
@@ -252,13 +357,15 @@ export default function HomePage({ setPage }) {
       <section className="testimonials">
         <div className="container">
           <div className="testimonials-header">
-            <span className="section-label">Student Stories</span>
-            <h2 className="section-title">What Our <span>Students Say</span></h2>
+            <span className="section-label">{testimonialsContent?.sectionLabel ?? "Student Stories"}</span>
+            <h2 className="section-title">
+              {testimonialsContent?.titleMain ?? "What Our"} <span>{testimonialsContent?.titleAccent ?? "Students Say"}</span>
+            </h2>
           </div>
           <div className="testimonials-grid">
-            {testimonials.map(t => (
+            {(testimonialsListData?.items ?? testimonials).map(t => (
               <div key={t.id} className="testimonial-card">
-                <div className="testimonial-stars">{'★'.repeat(t.stars)}</div>
+                <div className="testimonial-stars">{'★'.repeat(t.stars ?? 5)}</div>
                 <div className="testimonial-quote">"</div>
                 <p className="testimonial-text">{t.text}</p>
                 <div className="testimonial-author">
@@ -279,12 +386,22 @@ export default function HomePage({ setPage }) {
         <div className="container">
           <div className="cta-banner-inner">
             <div>
-              <h2 className="cta-banner-title">Ready to Get Your<br />Driving License?</h2>
-              <p className="cta-banner-sub">Join 8,500+ students who trusted UDrive. First lesson is free.</p>
+              <h2 className="cta-banner-title">
+                {ctaContent?.titleLine1 ?? 'Ready to Get Your'}
+                <br />
+                {ctaContent?.titleLine2 ?? 'Driving License?'}
+              </h2>
+              <p className="cta-banner-sub">
+                {ctaContent?.subtitle ?? 'Join 8,500+ students who trusted UDrive. First lesson is free.'}
+              </p>
             </div>
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-              <button className="btn btn-dark" onClick={() => setPage('booking')}>Book Free Trial</button>
-              <button className="btn btn-outline" style={{ borderColor: 'var(--black)', color: 'var(--black)' }} onClick={() => setPage('courses')}>View Courses</button>
+              <button className="btn btn-dark" onClick={() => setPage('booking')}>
+                {ctaContent?.button1Text ?? 'Book Free Trial'}
+              </button>
+              <button className="btn btn-outline" style={{ borderColor: 'var(--black)', color: 'var(--black)' }} onClick={() => setPage('courses')}>
+                {ctaContent?.button2Text ?? 'View Courses'}
+              </button>
             </div>
           </div>
         </div>

@@ -25,6 +25,7 @@ function normalizeBooking(id, data) {
     student_name: data.student ?? data.name ?? '',
     student: data.student ?? data.name ?? '',
     course: data.course ?? '',
+    fee: data.fee ?? 0,
     booking_date: data.booking_date ?? data.date ?? '',
     time: data.time ?? data.booking_time ?? data.preferredTime ?? '',
     preferredTime: data.preferredTime ?? data.time ?? data.booking_time ?? '',
@@ -63,6 +64,7 @@ export async function addBooking(bookingData) {
     email: bookingData.email,
     phone: bookingData.phone,
     course: bookingData.course,
+    fee: bookingData.fee ?? 0,
     booking_date: bookingData.booking_date ?? bookingData.date,
     time: bookingData.time,
     preferredTime: bookingData.time,
@@ -102,7 +104,26 @@ export async function updateBookingStatus(bookingId, updates, bookingData) {
 
   try {
     const bookingRef = doc(db, 'bookings', bookingId);
-    await updateDoc(bookingRef, { ...updates, updatedAt: serverTimestamp() });
+    const updatesWithFee = { ...updates, updatedAt: serverTimestamp() };
+    if (updates.booking_status === 'Approved' && bookingData && bookingData.fee == null && bookingData.course) {
+      try {
+        const coursesCollection = collection(db, 'courses');
+        let courseSnapshot = await getDocs(query(coursesCollection, where('title', '==', bookingData.course)));
+        if (courseSnapshot.size === 0) {
+          courseSnapshot = await getDocs(query(coursesCollection, where('name', '==', bookingData.course)));
+        }
+        if (courseSnapshot.size > 0) {
+          const courseData = courseSnapshot.docs[0].data();
+          const feeFromCourse = courseData.priceNPR ?? courseData.fee ?? courseData.price;
+          if (feeFromCourse != null) {
+            updatesWithFee.fee = feeFromCourse;
+          }
+        }
+      } catch (err) {
+        console.warn('[bookingService] approve fee resolution error:', err);
+      }
+    }
+    await updateDoc(bookingRef, updatesWithFee);
 
     // Handle approve — add student + increment course count
 if (updates.booking_status === 'Approved' && bookingData) {

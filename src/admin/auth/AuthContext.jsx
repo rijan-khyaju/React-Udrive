@@ -30,7 +30,6 @@ export function AuthProvider({ children }) {
               authenticated: true,
             });
           } else {
-            await firebaseSignOut(auth);
             setUser(null);
           }
         } catch (error) {

@@ -170,15 +170,16 @@ export default function AuthPage({ initialTab = 'login' }) {
               {tab === 'signup' && (
                 <div className="form-group">
                   <label>Phone *</label>
-                  <input
-                    name="phone"
-                    type="tel"
-                    value={form.phone}
-                    onChange={handleChange}
-                    placeholder="98XXXXXXXX"
-                    pattern="^(97|98)\d{8}$"
-                    autoComplete="tel"
-                  />
+                 <input
+  name="phone"
+  value={form.phone}
+  onChange={handleChange}
+  placeholder="98XXXXXXXX"
+  pattern="^(97|98)\d{8}$"
+  title="Enter a valid 10-digit Nepali mobile number starting with 97 or 98"
+  maxLength={10}
+  required
+/>
                   {errors.phone && <div style={{ color: '#d14343', fontSize: 13 }}>{errors.phone}</div>}
                 </div>
               )}
@@ -208,7 +209,6 @@ export default function AuthPage({ initialTab = 'login' }) {
               )}
             </div>
           </div>
-        </div>
       </section>
     </main>
   );

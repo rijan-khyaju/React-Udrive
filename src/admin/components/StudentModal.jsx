@@ -100,7 +100,7 @@ export default function StudentModal({ open, mode, student, onClose, onSubmit, c
     setForm((prev) => ({ ...prev, booking_date: val }));
   }}
   disabled={isView} required
-  min={new Date().toISOString().split('T')[0]}
+  min={new Date(Date.now() + 86400000).toISOString().split('T')[0]}
   max="2030-12-31"
 />
 </div>

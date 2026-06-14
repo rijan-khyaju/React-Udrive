@@ -23,23 +23,16 @@ export default function ReportsPage() {
           courseService.getCourses(),
         ]);
 
-        // Revenue — sum of paid bookings
-        const courseFeeMap = {};
-courses.forEach((c) => {
-  const name = c.name || c.title;
-  const fee = Number(c.priceNPR ?? c.fee ?? c.price ?? 0);
-  courseFeeMap[name] = fee;
-});
-
-const revenue = bookings.reduce((sum, b) => {
-  if (b.payment_status === 'Paid') {
-    const fee = b.fee != null && Number(b.fee) > 0
-      ? Number(b.fee)
-      : (courseFeeMap[b.course] || 0);
-    return sum + fee;
-  }
-  return sum;
-}, 0);
+        // Revenue — sum of paid bookings using stored booking fee only
+        const revenue = bookings.reduce((sum, b) => {
+          if (b.payment_status === 'Paid') {
+            const fee = b.fee != null && Number(b.fee) > 0
+              ? Number(b.fee)
+              : 0;
+            return sum + fee;
+          }
+          return sum;
+        }, 0);
 
         // Active courses
         const activeCourses = courses.filter(
