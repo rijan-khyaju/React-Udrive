@@ -7,6 +7,7 @@ import * as courseService from '../services/courseService';
 import * as bookingService from '../services/bookingService';
 import * as studentService from '../services/studentService';
 import * as instructorService from '../services/instructorService';
+import { useAuth } from '../auth/AuthContext';
 import { adminStats, adminBookings, adminStudents, adminActivity } from '../data/adminData';
 
 const actionLabels = {
@@ -18,6 +19,7 @@ const actionLabels = {
 
 export default function DashboardPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [activeModal, setActiveModal] = useState(null);
   const [selectedItem, setSelectedItem] = useState(null);
   const [liveStatValues, setLiveStatValues] = useState({
@@ -50,8 +52,8 @@ export default function DashboardPage() {
         const revenueTotal = bookings.reduce((sum, booking) => {
           if (booking.payment_status === 'Paid') {
             const fee = booking.fee != null && Number(booking.fee) > 0
-  ? Number(booking.fee)
-  : (courseFeeMap[booking.course] || 0);
+              ? Number(booking.fee)
+              : (courseFeeMap[booking.course] || 0);
             return sum + fee;
           }
           return sum;
@@ -62,7 +64,7 @@ export default function DashboardPage() {
           courses: courses.length,
           instructors: instructors.length,
           bookings: bookings.length,
-          revenue: `$${revenueTotal.toLocaleString()}`,
+          revenue: `Rs. ${revenueTotal.toLocaleString()}`,
         });
         setRecentBookings(bookings.slice(0, 5));
         setRecentStudents(students.slice(0, 5));
@@ -81,7 +83,6 @@ export default function DashboardPage() {
       'Total Instructors': '/admin/instructors',
       'Total Bookings': '/admin/bookings',
     };
-
     const path = pathMap[label];
     if (path) navigate(path);
   };
@@ -156,7 +157,7 @@ export default function DashboardPage() {
     <section className="admin-page admin-dashboard">
       <div className="dashboard-header">
         <div>
-          <p className="dashboard-welcome">Welcome back, Admin</p>
+          <p className="dashboard-welcome">Welcome back, {user?.displayName || 'Admin'}</p>
           <p className="dashboard-copy">Your UDrive dashboard overview for the latest activity.</p>
         </div>
       </div>
@@ -164,26 +165,11 @@ export default function DashboardPage() {
       <div className="admin-stats-grid">
         {adminStats.map((stat) => {
           let value = stat.value;
-
-          if (stat.label === 'Total Students' && liveStatValues.students !== null) {
-            value = String(liveStatValues.students);
-          }
-
-          if (stat.label === 'Total Courses' && liveStatValues.courses !== null) {
-            value = String(liveStatValues.courses);
-          }
-          if (stat.label === 'Total Instructors' && liveStatValues.instructors !== null) {
-            value = String(liveStatValues.instructors);
-          }
-
-          if (stat.label === 'Total Bookings' && liveStatValues.bookings !== null) {
-            value = String(liveStatValues.bookings);
-          }
-
-          if (stat.label === 'Total Revenue' && liveStatValues.revenue !== null) {
-            value = liveStatValues.revenue;
-          }
-
+          if (stat.label === 'Total Students' && liveStatValues.students !== null) value = String(liveStatValues.students);
+          if (stat.label === 'Total Courses' && liveStatValues.courses !== null) value = String(liveStatValues.courses);
+          if (stat.label === 'Total Instructors' && liveStatValues.instructors !== null) value = String(liveStatValues.instructors);
+          if (stat.label === 'Total Bookings' && liveStatValues.bookings !== null) value = String(liveStatValues.bookings);
+          if (stat.label === 'Total Revenue' && liveStatValues.revenue !== null) value = liveStatValues.revenue;
           return (
             <StatCard
               key={stat.label}

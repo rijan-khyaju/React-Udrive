@@ -60,6 +60,7 @@ export default function AuthPage({ initialTab = 'login' }) {
       }
       navigate('/');
     } catch (err) {
+      console.error('[AuthPage] login error:', err);
       const code = err?.code || '';
       const friendlyMessage =
         code === 'auth/invalid-credential' || code === 'auth/user-not-found' || code === 'auth/wrong-password'
@@ -93,7 +94,7 @@ export default function AuthPage({ initialTab = 'login' }) {
       </section>
 
       <section className="auth-page">
-        <div className="container">
+        {/* <div className="container"> */}
           <div className="auth-card">
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '28px' }}>
               <div style={{ width: '44px', height: '44px', background: 'var(--yellow)', borderRadius: '50%', display: 'grid', placeItems: 'center', color: 'var(--black)', fontFamily: 'var(--font-display)', fontSize: '22px', fontWeight: 900 }}>

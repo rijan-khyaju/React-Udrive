@@ -1038,3 +1038,128 @@
     min-height: calc(100vh - 108px);
   }
 }
+
+/* ===== DARK THEME ===== */
+[data-theme="dark"] {
+  --admin-bg: #0f1115;
+  --admin-surface: #1a1d24;
+  --admin-surface-2: #21242c;
+  --admin-border: #2d313a;
+  --admin-text: #e5e7eb;
+  --admin-muted: #9ca3af;
+  --admin-blue: #5b8aff;
+  --admin-blue-soft: rgba(91,138,255,0.15);
+  --admin-shadow: 0 24px 50px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] body {
+  background: var(--admin-bg);
+  color: var(--admin-text);
+}
+
+[data-theme="dark"] .admin-shell {
+  background: var(--admin-bg);
+}
+
+[data-theme="dark"] .admin-sidebar,
+[data-theme="dark"] .admin-topbar,
+[data-theme="dark"] .topbar-search,
+[data-theme="dark"] .topbar-icon,
+[data-theme="dark"] .topbar-avatar,
+[data-theme="dark"] .topbar-menu-btn,
+[data-theme="dark"] .avatar-menu,
+[data-theme="dark"] .quick-action-btn,
+[data-theme="dark"] .btn-secondary {
+  background: var(--admin-surface);
+  border-color: var(--admin-border);
+  color: var(--admin-text);
+}
+
+[data-theme="dark"] .avatar-menu button {
+  color: var(--admin-text);
+}
+
+[data-theme="dark"] .login-page {
+  background: linear-gradient(180deg, #0f1115 0%, #15171c 100%);
+}
+
+[data-theme="dark"] .login-card {
+  background: var(--admin-surface);
+  border-color: var(--admin-border);
+}
+
+[data-theme="dark"] .login-form input,
+[data-theme="dark"] .settings-form-row input[type='text'],
+[data-theme="dark"] .settings-form-row input[type='email'],
+[data-theme="dark"] .settings-form-row input[type='tel'],
+[data-theme="dark"] .settings-form-row input[type='password'],
+[data-theme="dark"] .student-form-row input,
+[data-theme="dark"] .student-form-row textarea,
+[data-theme="dark"] .student-form-row select,
+[data-theme="dark"] .course-form-row input,
+[data-theme="dark"] .course-form-row textarea,
+[data-theme="dark"] .course-form-row select,
+[data-theme="dark"] .instructor-form-row input,
+[data-theme="dark"] .instructor-form-row textarea,
+[data-theme="dark"] .instructor-form-row select,
+[data-theme="dark"] .filter-group input,
+[data-theme="dark"] .filter-group select,
+[data-theme="dark"] .topbar-search input {
+  background: var(--admin-bg);
+  border-color: var(--admin-border);
+  color: var(--admin-text);
+}
+
+[data-theme="dark"] .stat-card,
+[data-theme="dark"] .admin-card,
+[data-theme="dark"] .report-summary-card,
+[data-theme="dark"] .course-list-item,
+[data-theme="dark"] .system-info-row,
+[data-theme="dark"] .activity-item {
+  background: var(--admin-surface-2);
+  border-color: var(--admin-border);
+  color: var(--admin-text);
+}
+
+[data-theme="dark"] .admin-table th,
+[data-theme="dark"] .admin-table td {
+  border-color: var(--admin-border);
+  color: var(--admin-text);
+}
+
+[data-theme="dark"] .admin-table tr:hover {
+  background: var(--admin-surface-2);
+}
+
+[data-theme="dark"] .report-chart-placeholder {
+  border-color: var(--admin-border);
+  background: rgba(91,138,255,0.06);
+  color: var(--admin-muted);
+}
+
+[data-theme="dark"] .admin-nav-link {
+  color: var(--admin-muted);
+}
+
+[data-theme="dark"] .admin-nav-link:hover,
+[data-theme="dark"] .admin-nav-link.active {
+  background: var(--admin-blue-soft);
+  color: var(--admin-blue);
+}
+
+[data-theme="dark"] .badge-approved,
+[data-theme="dark"] .badge-paid {
+  background: rgba(91,138,255,0.18);
+}
+
+[data-theme="dark"] .badge-completed {
+  background: rgba(46,206,113,0.18);
+}
+
+[data-theme="dark"] .badge-pending {
+  background: rgba(255,176,0,0.18);
+}
+
+[data-theme="dark"] .badge-cancelled {
+  background: rgba(199,43,61,0.18);
+}

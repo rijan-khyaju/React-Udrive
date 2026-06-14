@@ -5,7 +5,7 @@ import { useAuth } from '../auth/AuthContext';
 export default function LoginPage() {
   const navigate = useNavigate();
   const { user, signIn, loading } = useAuth();
-  const [email, setEmail] = useState('admin@example.com');
+const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -88,7 +88,7 @@ export default function LoginPage() {
             {submitting || loading ? 'Signing in…' : 'Sign In'}
           </button>
 
-          <p className="login-note">Use any password for development mode.</p>
+          <p className="login-note">Enter your admin credentials to continue.</p>
         </form>
       </div>
     </div>

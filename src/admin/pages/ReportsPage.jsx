@@ -1,26 +1,100 @@
+import { useEffect, useState } from 'react';
 import StatCard from '../components/StatCard';
-
-const reportStats = [
-  { icon: '🧑‍🎓', label: 'Total Students', value: '8,240', delta: '+12.4%' },
-  { icon: '💰', label: 'Total Revenue', value: '$148.2K', delta: '+8.7%' },
-  { icon: '📅', label: 'Total Bookings', value: '1,872', delta: '+4.5%' },
-  { icon: '📚', label: 'Active Courses', value: '24', delta: '+2' },
-];
-
-const popularCourses = [
-  { title: 'License Prep', students: 420, completion: '92%' },
-  { title: 'Defensive Driving', students: 310, completion: '89%' },
-  { title: 'Night Driving', students: 190, completion: '84%' },
-  { title: 'Basic Driving', students: 480, completion: '95%' },
-];
+import * as studentService from '../services/studentService';
+import * as bookingService from '../services/bookingService';
+import * as courseService from '../services/courseService';
 
 export default function ReportsPage() {
+  const [stats, setStats] = useState({
+    totalStudents: '-',
+    totalRevenue: '-',
+    totalBookings: '-',
+    activeCourses: '-',
+  });
+  const [popularCourses, setPopularCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const [students, bookings, courses] = await Promise.all([
+          studentService.getStudents(),
+          bookingService.getBookings(),
+          courseService.getCourses(),
+        ]);
+
+        // Revenue — sum of paid bookings
+        const courseFeeMap = {};
+courses.forEach((c) => {
+  const name = c.name || c.title;
+  const fee = Number(c.priceNPR ?? c.fee ?? c.price ?? 0);
+  courseFeeMap[name] = fee;
+});
+
+const revenue = bookings.reduce((sum, b) => {
+  if (b.payment_status === 'Paid') {
+    const fee = b.fee != null && Number(b.fee) > 0
+      ? Number(b.fee)
+      : (courseFeeMap[b.course] || 0);
+    return sum + fee;
+  }
+  return sum;
+}, 0);
+
+        // Active courses
+        const activeCourses = courses.filter(
+          (c) => c.status === 'Active'
+        );
+
+        // Popular courses — sort by student count
+        const courseStudentMap = {};
+        students.forEach((s) => {
+          if (s.course) {
+            courseStudentMap[s.course] = (courseStudentMap[s.course] || 0) + 1;
+          }
+        });
+
+        const popular = courses
+          .map((c) => ({
+            title: c.name || c.title,
+            students: c.students || courseStudentMap[c.name || c.title] || 0,
+          }))
+          .sort((a, b) => b.students - a.students)
+          .slice(0, 5);
+
+        setStats({
+          totalStudents: students.length,
+          totalRevenue: `Rs. ${revenue.toLocaleString()}`,
+          totalBookings: bookings.length,
+          activeCourses: activeCourses.length,
+        });
+
+        setPopularCourses(popular);
+      } catch (error) {
+        console.error('[ReportsPage] fetchData error:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchData();
+  }, []);
+
+  const reportStats = [
+    { icon: '🧑‍🎓', label: 'Total Students', value: String(stats.totalStudents), delta: '' },
+    { icon: '💰', label: 'Total Revenue', value: stats.totalRevenue, delta: '' },
+    { icon: '📅', label: 'Total Bookings', value: String(stats.totalBookings), delta: '' },
+    { icon: '📚', label: 'Active Courses', value: String(stats.activeCourses), delta: '' },
+  ];
+
   return (
     <section className="admin-page admin-reports">
       <div className="reports-header">
         <div>
           <p className="dashboard-welcome">Reports Dashboard</p>
-          <p className="dashboard-copy">Track registration trends, bookings cadence, revenue growth, and the most popular courses.</p>
+          <p className="dashboard-copy">
+            Track registration trends, bookings cadence, revenue growth, and the most popular courses.
+          </p>
         </div>
       </div>
 
@@ -34,30 +108,34 @@ export default function ReportsPage() {
         <div className="admin-card">
           <div className="admin-card-header">
             <h3>Student Registration Overview</h3>
-            <span>Last 30 days</span>
+            <span>All time</span>
           </div>
           <div className="report-summary-grid">
             <div className="report-summary-card">
-              <strong>1,120</strong>
-              <p>New registrations</p>
+              <strong>{loading ? '...' : stats.totalStudents}</strong>
+              <p>Total students</p>
             </div>
             <div className="report-summary-card">
-              <strong>78%</strong>
-              <p>Course enrollment rate</p>
+              <strong>{loading ? '...' : stats.activeCourses}</strong>
+              <p>Active courses</p>
             </div>
-          </div>
-          <div className="report-chart-placeholder">
-            <span>Student registration chart placeholder</span>
           </div>
         </div>
 
         <div className="admin-card">
           <div className="admin-card-header">
-            <h3>Monthly Bookings Overview</h3>
-            <span>6 month trend</span>
+            <h3>Bookings Overview</h3>
+            <span>All time</span>
           </div>
-          <div className="report-chart-placeholder report-chart-large">
-            <span>Monthly bookings chart placeholder</span>
+          <div className="report-summary-grid">
+            <div className="report-summary-card">
+              <strong>{loading ? '...' : stats.totalBookings}</strong>
+              <p>Total bookings</p>
+            </div>
+            <div className="report-summary-card">
+              <strong>{loading ? '...' : stats.totalRevenue}</strong>
+              <p>Total revenue</p>
+            </div>
           </div>
         </div>
       </div>
@@ -65,29 +143,37 @@ export default function ReportsPage() {
       <div className="admin-grid admin-grid-2 report-sections">
         <div className="admin-card">
           <div className="admin-card-header">
-            <h3>Revenue Overview</h3>
-            <span>Fiscal quarter</span>
+            <h3>Popular Courses</h3>
+            <span>By student count</span>
           </div>
-          <div className="report-chart-placeholder report-chart-large">
-            <span>Revenue chart placeholder</span>
+          <div className="course-list">
+            {loading ? (
+              <p>Loading...</p>
+            ) : popularCourses.length === 0 ? (
+              <p style={{ color: '#888', padding: '16px 0' }}>No course data yet.</p>
+            ) : (
+              popularCourses.map((course) => (
+                <div key={course.title} className="course-list-item">
+                  <div>
+                    <h4>{course.title}</h4>
+                    <p>{course.students} students enrolled</p>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
 
         <div className="admin-card">
           <div className="admin-card-header">
-            <h3>Popular Courses</h3>
-            <span>Top performing classes</span>
+            <h3>Revenue Breakdown</h3>
+            <span>Paid bookings only</span>
           </div>
-          <div className="course-list">
-            {popularCourses.map((course) => (
-              <div key={course.title} className="course-list-item">
-                <div>
-                  <h4>{course.title}</h4>
-                  <p>{course.students} students enrolled</p>
-                </div>
-                <span>{course.completion}</span>
-              </div>
-            ))}
+          <div className="report-summary-grid">
+            <div className="report-summary-card">
+              <strong>{loading ? '...' : stats.totalRevenue}</strong>
+              <p>From approved bookings</p>
+            </div>
           </div>
         </div>
       </div>

@@ -1383,3 +1383,104 @@ ul { list-style: none; }
   .dashboard-stats { grid-template-columns: 1fr 1fr; }
   .hero-stats { gap: 24px; }
 }
+/* ===== DARK THEME ===== */
+[data-theme="dark"] {
+  --white: #15171c;
+  --gray-light: #1e2128;
+  --dark: #f4f5f6;
+  --black: #f4f5f6;
+  --border: #2d313a;
+  --gray: #9ca3af;
+}
+
+[data-theme="dark"] body {
+  background: #0f1115;
+  color: #e5e7eb;
+}
+
+[data-theme="dark"] .admin-layout {
+  background: #0f1115;
+}
+
+[data-theme="dark"] .admin-sidebar {
+  background: #15171c;
+  border-color: #2d313a;
+}
+
+[data-theme="dark"] .admin-page,
+[data-theme="dark"] .admin-card,
+[data-theme="dark"] .settings-card,
+[data-theme="dark"] .dash-stat,
+[data-theme="dark"] .dash-card,
+[data-theme="dark"] .system-info-row,
+[data-theme="dark"] .admin-card-header {
+  background: #1a1d24;
+  border-color: #2d313a;
+  color: #e5e7eb;
+}
+
+[data-theme="dark"] .admin-grid .admin-card,
+[data-theme="dark"] .report-sections .admin-card {
+  background: #1a1d24;
+  border-color: #2d313a;
+}
+
+[data-theme="dark"] .dash-card-header {
+  border-color: #2d313a;
+}
+
+[data-theme="dark"] h1,
+[data-theme="dark"] h2,
+[data-theme="dark"] h3,
+[data-theme="dark"] .dashboard-welcome,
+[data-theme="dark"] .dash-stat-val,
+[data-theme="dark"] .dash-card-title,
+[data-theme="dark"] .course-card-title,
+[data-theme="dark"] strong {
+  color: #f4f5f6;
+}
+
+[data-theme="dark"] .dashboard-copy,
+[data-theme="dark"] .admin-card-header span,
+[data-theme="dark"] .system-info-row span,
+[data-theme="dark"] .dash-stat-label,
+[data-theme="dark"] .lesson-instructor,
+[data-theme="dark"] .profile-label {
+  color: #9ca3af;
+}
+
+[data-theme="dark"] .settings-form-row label,
+[data-theme="dark"] .settings-form-row input,
+[data-theme="dark"] .settings-form-row select,
+[data-theme="dark"] .settings-form-row textarea {
+  color: #e5e7eb;
+}
+
+[data-theme="dark"] .settings-form-row input,
+[data-theme="dark"] .settings-form-row select,
+[data-theme="dark"] .settings-form-row textarea {
+  background: #15171c;
+  border: 1.5px solid #2d313a;
+}
+
+[data-theme="dark"] .settings-form-row input:focus,
+[data-theme="dark"] .settings-form-row select:focus,
+[data-theme="dark"] .settings-form-row textarea:focus {
+  border-color: var(--yellow);
+}
+
+[data-theme="dark"] table,
+[data-theme="dark"] th,
+[data-theme="dark"] td {
+  background: #1a1d24;
+  color: #e5e7eb;
+  border-color: #2d313a;
+}
+
+[data-theme="dark"] .progress-bar {
+  background: #2d313a;
+}
+
+[data-theme="dark"] .lesson-item {
+  border-color: #2d313a;
+}

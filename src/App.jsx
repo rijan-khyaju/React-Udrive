@@ -12,38 +12,38 @@ import ReportsPage from './admin/pages/ReportsPage';
 import SettingsPage from './admin/pages/SettingsPage';
 import LoginPage from './admin/pages/LoginPage';
 import { AuthProvider as AdminAuthProvider } from './admin/auth/AuthContext';
-import { PublicAuthProvider } from './context/AuthContext.jsx';
+import { AuthProvider as PublicAuthProvider } from './context/AuthContext.jsx';
 import ProtectedRoute from './admin/auth/ProtectedRoute';
 import { ADMIN_ROLE } from './admin/auth/roles';
 
 export default function App() {
   return (
-    <AdminAuthProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route element={<PublicAuthProvider />}>
+    <PublicAuthProvider>
+      <AdminAuthProvider>
+        <BrowserRouter>
+          <Routes>
             <Route path="/" element={<Website />} />
             <Route path="/login" element={<AuthPage initialTab="login" />} />
             <Route path="/signup" element={<AuthPage initialTab="signup" />} />
             <Route path="/profile" element={<ProfilePage />} />
-          </Route>
 
-          <Route path="/admin/login" element={<LoginPage />} />
-          <Route element={<ProtectedRoute allowedRoles={[ADMIN_ROLE]} />}>
-            <Route path="/admin" element={<AdminLayout />}>
-              <Route index element={<Navigate replace to="dashboard" />} />
-              <Route path="dashboard" element={<AdminDashboardPage />} />
-              <Route path="students" element={<StudentsPage />} />
-              <Route path="courses" element={<CoursesPage />} />
-              <Route path="instructors" element={<InstructorsPage />} />
-              <Route path="bookings" element={<BookingsPage />} />
-              <Route path="reports" element={<ReportsPage />} />
-              <Route path="settings" element={<SettingsPage />} />
+            <Route path="/admin/login" element={<LoginPage />} />
+            <Route element={<ProtectedRoute allowedRoles={[ADMIN_ROLE]} />}>
+              <Route path="/admin" element={<AdminLayout />}>
+                <Route index element={<Navigate replace to="dashboard" />} />
+                <Route path="dashboard" element={<AdminDashboardPage />} />
+                <Route path="students" element={<StudentsPage />} />
+                <Route path="courses" element={<CoursesPage />} />
+                <Route path="instructors" element={<InstructorsPage />} />
+                <Route path="bookings" element={<BookingsPage />} />
+                <Route path="reports" element={<ReportsPage />} />
+                <Route path="settings" element={<SettingsPage />} />
+              </Route>
             </Route>
-          </Route>
-          <Route path="*" element={<Navigate replace to="/" />} />
-        </Routes>
-      </BrowserRouter>
-    </AdminAuthProvider>
+            <Route path="*" element={<Navigate replace to="/" />} />
+          </Routes>
+        </BrowserRouter>
+      </AdminAuthProvider>
+    </PublicAuthProvider>
   );
 }

@@ -101,9 +101,23 @@ export default function BookingPage() {
     }
   };
 
-  if (!loading && !user) {
-    return <Navigate to="/login" replace />;
-  }
+ if (loading) {
+  return (
+    <main style={{ marginTop: 72, minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <p>Loading...</p>
+    </main>
+  );
+}
+
+if (!user) {
+  return (
+    <main style={{ marginTop: 72, minHeight: '60vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, textAlign: 'center', padding: '0 24px' }}>
+      <h2 className="section-title">Please Log In</h2>
+      <p style={{ color: 'var(--gray)', maxWidth: 420 }}>You need to be logged in to book a lesson.</p>
+      <a href="/login" className="btn btn-yellow">Go to Login</a>
+    </main>
+  );
+}
 
   return (
     <main style={{ marginTop: 72 }}>
