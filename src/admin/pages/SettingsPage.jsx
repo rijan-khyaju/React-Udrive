@@ -753,83 +753,186 @@ export default function SettingsPage() {
                 <h3>Homepage Hero Stats</h3>
                 <span>Manage the hero stat numbers</span>
               </div>
+              <div style={{ padding: 16, background: '#fff9db', borderRadius: 12, marginBottom: 16, border: '1px solid #f5e7a7' }}>
+                <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 6 }}>Hero Statistics</div>
+                <div style={{ color: '#555', fontSize: 14 }}>These numbers appear in the homepage hero section</div>
+              </div>
               <form className="settings-form" onSubmit={(e) => e.preventDefault()}>
-                {homepageStats.items.map((it, idx) => (
-                  <div className="settings-form-row" key={idx} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                    <div style={{ flex: '0 0 120px' }}>
-                      <label>Target</label>
-                      <input
-                        type="number"
-                        min={0}
-                        max={it.suffix === '★' ? 5 : undefined}
-                        step={it.suffix === '★' ? 0.1 : undefined}
-                        value={it.target}
-                        disabled={it.label === 'Average Rating'}
-                        onChange={(e) => {
-                          const copy = { ...homepageStats };
-                          copy.items = copy.items.map((x, i) => i === idx ? { ...x, target: Number(e.target.value) } : x);
-                          setHomepageStats(copy);
+                <div style={{ display: 'grid', gap: 16 }}>
+                  {homepageStats.items.map((it, idx) => {
+                    const isRating = it.label === 'Average Rating';
+                    return (
+                      <div
+                        key={idx}
+                        style={{
+                          display: 'grid',
+                          gridTemplateColumns: '48px 220px minmax(0, 1fr) 110px',
+                          alignItems: 'start',
+                          gap: 12,
+                          background: isRating ? '#fffbeb' : '#f8f8f8',
+                          borderRadius: 8,
+                          padding: 16,
+                          boxShadow: '0 8px 24px rgba(0,0,0,0.04)',
+                          borderLeft: `4px solid ${isRating ? '#9ca3a6' : '#f0c000'}`,
                         }}
-                      />
-                      {it.label === 'Average Rating' && (
-                        <p style={{ margin: '8px 0 0', fontSize: 13, color: '#555' }}>
-                          ⚡ This value is now auto-calculated from approved reviews. Manual edits here will be overridden.
-                        </p>
-                      )}
-                    </div>
-                    <div style={{ flex: '0 0 80px' }}>
-                      <label>Suffix</label>
-                      <input type="text" value={it.suffix} onChange={(e) => {
-                        const copy = { ...homepageStats };
-                        copy.items = copy.items.map((x, i) => i === idx ? { ...x, suffix: e.target.value } : x);
-                        setHomepageStats(copy);
-                      }} />
-                    </div>
-                    <div style={{ flex: '0 0 80px' }}>
-                      <label>Decimals</label>
-                      <input type="number" min={0} max={1} value={it.decimals} onChange={(e) => {
-                        const v = Math.max(0, Math.min(1, Number(e.target.value) || 0));
-                        const copy = { ...homepageStats };
-                        copy.items = copy.items.map((x, i) => i === idx ? { ...x, decimals: v } : x);
-                        setHomepageStats(copy);
-                      }} />
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <label>Label</label>
-                      <input type="text" value={it.label} onChange={(e) => {
-                        const copy = { ...homepageStats };
-                        copy.items = copy.items.map((x, i) => i === idx ? { ...x, label: e.target.value } : x);
-                        setHomepageStats(copy);
-                      }} />
-                    </div>
-                    <div style={{ flex: '0 0 96px' }}>
-                      <label>&nbsp;</label>
-                      <button className="btn-primary" type="button" onClick={() => {
-                        const copy = { ...homepageStats };
-                        copy.items = copy.items.filter((_, i) => i !== idx);
-                        setHomepageStats(copy);
-                      }}>Remove</button>
-                    </div>
-                  </div>
-                ))}
-                <div className="settings-form-row">
-                  <button className="btn-primary" type="button" onClick={() => {
-                    setHomepageStats((prev) => ({ items: [...prev.items, { target: 0, suffix: '', decimals: 0, label: '' }] }));
-                  }}>Add Stat</button>
+                      >
+                        <div style={{ color: '#6b7280', fontSize: 18, display: 'grid', placeItems: 'center' }}>⠿</div>
+                        <div style={{ display: 'grid', gap: 8 }}>
+                          <div style={{ fontSize: 22, fontWeight: 700, color: '#b45309', minWidth: 0 }}>{it.target}{it.suffix}</div>
+                          <div style={{ fontSize: 13, color: '#6b7280', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={it.label || 'Label'}>{it.label || 'Label'}</div>
+                        </div>
+                        <div style={{ display: 'grid', gap: 12, width: '100%', minWidth: 0 }}>
+                        <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', width: '100%', minWidth: 0, flexWrap: 'wrap' }}>
+                            <div style={{ display: 'grid', gap: 6, minWidth: 0, width: 65 }}>
+                              <label style={{ fontSize: 12, color: '#555', fontWeight: 600 }}>Target</label>
+                              <input
+                                type="number"
+                                min={0}
+                                max={it.suffix === '★' ? 5 : undefined}
+                                step={it.suffix === '★' ? 0.1 : undefined}
+                                value={it.target}
+                                disabled={isRating}
+                                readOnly={isRating}
+                                onChange={(e) => {
+                                  const copy = { ...homepageStats };
+                                  copy.items = copy.items.map((x, i) => i === idx ? { ...x, target: Number(e.target.value) } : x);
+                                  setHomepageStats(copy);
+                                }}
+                                style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #ddd', background: isRating ? '#f5f3e5' : '#fff' }}
+                              />
+                            </div>
+                            <div style={{ display: 'grid', gap: 6, minWidth: 0, width: 55 }}>
+                              <label style={{ fontSize: 12, color: '#555', fontWeight: 600 }}>Suffix</label>
+                              <input
+                                type="text"
+                                value={it.suffix}
+                                onChange={(e) => {
+                                  const copy = { ...homepageStats };
+                                  copy.items = copy.items.map((x, i) => i === idx ? { ...x, suffix: e.target.value } : x);
+                                  setHomepageStats(copy);
+                                }}
+                                style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #ddd', background: '#fff' }}
+                              />
+                            </div>
+                            <div style={{ display: 'grid', gap: 6, minWidth: 0, width: 55 }}>
+                              <label style={{ fontSize: 12, color: '#555', fontWeight: 600 }}>Decimals</label>
+                              <input
+                                type="number"
+                                min={0}
+                                max={1}
+                                value={it.decimals}
+                                disabled={isRating}
+                                readOnly={isRating}
+                                onChange={(e) => {
+                                  const v = Math.max(0, Math.min(1, Number(e.target.value) || 0));
+                                  const copy = { ...homepageStats };
+                                  copy.items = copy.items.map((x, i) => i === idx ? { ...x, decimals: v } : x);
+                                  setHomepageStats(copy);
+                                }}
+                                style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #ddd', background: isRating ? '#f5f3e5' : '#fff' }}
+                              />
+                            </div>
+                            <div style={{ display: 'grid', gap: 6, minWidth: 120, flex: 1 }}>
+                              <label style={{ fontSize: 12, color: '#555', fontWeight: 600 }}>Label</label>
+                              <input
+                                type="text"
+                                title={it.label}
+                                value={it.label}
+                                onChange={(e) => {
+                                  const copy = { ...homepageStats };
+                                  copy.items = copy.items.map((x, i) => i === idx ? { ...x, label: e.target.value } : x);
+                                  setHomepageStats(copy);
+                                }}
+                                style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #ddd', background: '#fff', minWidth: 0 }}
+                              />
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (!window.confirm('Are you sure you want to remove this stat?')) {
+                                  return;
+                                }
+                                const copy = { ...homepageStats };
+                                copy.items = copy.items.filter((_, i) => i !== idx);
+                                setHomepageStats(copy);
+                              }}
+                              style={{
+                                width: 32,
+                                height: 32,
+                                borderRadius: 10,
+                                border: 'none',
+                                background: '#dc2626',
+                                color: '#fff',
+                                display: 'grid',
+                                placeItems: 'center',
+                                fontSize: 16,
+                                cursor: 'pointer',
+                                padding: 0,
+                                minWidth: 0,
+                              }}
+                              onMouseEnter={(e) => { e.currentTarget.style.background = '#b91c1c'; }}
+                              onMouseLeave={(e) => { e.currentTarget.style.background = '#dc2626'; }}
+                            >
+                              🗑
+                            </button>
+                          </div>
+                          {isRating && (
+                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#fff8d2', color: '#854d0e', fontSize: 12, padding: '6px 10px', borderRadius: 999, width: 'fit-content' }}>
+                              ⚡ Auto-calculated from approved reviews
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-                <div className="settings-actions">
-                  <button className="btn-primary" type="button" onClick={async () => {
-                    try {
-                      await updateSectionContent('homepageStats', homepageStats);
-                      setSaveStatus((c) => ({ ...c, features: 'Stats saved successfully!' }));
-                    } catch (err) {
-                      setSaveStatus((c) => ({ ...c, features: 'Error saving stats.' }));
-                    }
-                    setTimeout(() => setSaveStatus((c) => ({ ...c, features: '' })), 3000);
-                  }}>
-                    Save Stats
+                <div style={{ marginTop: 18, display: 'grid', gap: 12 }}>
+                  <button
+                    className="btn-primary"
+                    type="button"
+                    onClick={() => {
+                      setHomepageStats((prev) => ({ items: [...prev.items, { target: 0, suffix: '', decimals: 0, label: '' }] }));
+                    }}
+                    style={{
+                      width: '100%',
+                      border: '2px dashed #f0c000',
+                      background: 'transparent',
+                      color: '#000',
+                      padding: '14px',
+                      borderRadius: 10,
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    + Add Stat
                   </button>
-                  {saveStatus.features && <span className="save-message">{saveStatus.features}</span>}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+                    <button
+                      className="btn-primary"
+                      type="button"
+                      onClick={async () => {
+                        try {
+                          await updateSectionContent('homepageStats', homepageStats);
+                          setSaveStatus((c) => ({ ...c, features: 'Stats saved successfully!' }));
+                        } catch (err) {
+                          setSaveStatus((c) => ({ ...c, features: 'Error saving stats.' }));
+                        }
+                        setTimeout(() => setSaveStatus((c) => ({ ...c, features: '' })), 3000);
+                      }}
+                      style={{
+                        padding: '14px 24px',
+                        borderRadius: 10,
+                        background: '#f0c000',
+                        color: '#000',
+                        fontWeight: 700,
+                        border: 'none',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Save Stats
+                    </button>
+                    {saveStatus.features && <span className="save-message">{saveStatus.features}</span>}
+                  </div>
                 </div>
               </form>
             </div>
