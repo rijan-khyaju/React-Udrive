@@ -6,6 +6,7 @@ const items = [
   { label: 'Courses', to: '/admin/courses', icon: '📚' },
   { label: 'Instructors', to: '/admin/instructors', icon: '👨‍🏫' },
   { label: 'Bookings', to: '/admin/bookings', icon: '📅' },
+  { label: 'Reviews', to: '/admin/reviews', icon: '⭐' },
   { label: 'Reports', to: '/admin/reports', icon: '📈' },
   { label: 'Settings', to: '/admin/settings', icon: '⚙️' },
 ];

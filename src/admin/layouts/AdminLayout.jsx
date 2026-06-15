@@ -10,6 +10,7 @@ const titles = {
   '/admin/courses': 'Courses',
   '/admin/instructors': 'Instructors',
   '/admin/bookings': 'Bookings',
+  '/admin/reviews': 'Reviews',
   '/admin/reports': 'Reports',
   '/admin/settings': 'Settings',
 };

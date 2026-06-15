@@ -8,6 +8,7 @@ import StudentsPage from './admin/pages/StudentsPage';
 import CoursesPage from './admin/pages/CoursesPage';
 import InstructorsPage from './admin/pages/InstructorsPage';
 import BookingsPage from './admin/pages/BookingsPage';
+import ReviewsPage from './admin/pages/ReviewsPage';
 import ReportsPage from './admin/pages/ReportsPage';
 import SettingsPage from './admin/pages/SettingsPage';
 import LoginPage from './admin/pages/LoginPage';
@@ -36,6 +37,7 @@ export default function App() {
                 <Route path="courses" element={<CoursesPage />} />
                 <Route path="instructors" element={<InstructorsPage />} />
                 <Route path="bookings" element={<BookingsPage />} />
+                <Route path="reviews" element={<ReviewsPage />} />
                 <Route path="reports" element={<ReportsPage />} />
                 <Route path="settings" element={<SettingsPage />} />
               </Route>

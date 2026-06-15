@@ -3,6 +3,7 @@ import { collection, getDocs, query, where, doc, setDoc } from 'firebase/firesto
 import { updateProfile } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import { auth, db } from '../firebase/firebaseConfig.js';
+import { submitReview } from '../services/reviewService.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import Navbar from '../components/Navbar.jsx';
 
@@ -16,6 +17,9 @@ export default function ProfilePage() {
   const [profileData, setProfileData] = useState({ name: '', phone: '' });
   const [saveError, setSaveError] = useState('');
   const [saving, setSaving] = useState(false);
+  const [reviewText, setReviewText] = useState('');
+  const [reviewStars, setReviewStars] = useState(0);
+  const [reviewStatus, setReviewStatus] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -117,6 +121,35 @@ export default function ProfilePage() {
       setSaveError('Unable to save profile updates. Please try again.');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleReviewSubmit = async (e) => {
+    e.preventDefault();
+    setReviewStatus('');
+
+    if (reviewStars < 1) {
+      setReviewStatus('Please select at least one star.');
+      return;
+    }
+    if (!reviewText.trim()) {
+      setReviewStatus('Please enter your review text.');
+      return;
+    }
+
+    try {
+      await submitReview({
+        uid: user.uid,
+        name: user.displayName || user.email || 'Student',
+        stars: reviewStars,
+        text: reviewText.trim(),
+      });
+      setReviewText('');
+      setReviewStars(0);
+      setReviewStatus('Thanks for your feedback! Your review will appear on the site once approved by our team.');
+    } catch (err) {
+      console.error('[ProfilePage] handleReviewSubmit:', err);
+      setReviewStatus('Unable to submit review. Please try again later.');
     }
   };
 
@@ -276,6 +309,50 @@ export default function ProfilePage() {
                   </div>
                 )}
               </div>
+            </div>
+
+            <div className="profile-card" style={{ marginTop: 16 }}>
+              <h2 className="booking-form-title">Leave a Review</h2>
+              <form onSubmit={handleReviewSubmit} style={{ display: 'grid', gap: 16, marginTop: 12 }}>
+                <div>
+                  <div className="profile-label" style={{ marginBottom: 8 }}>Rating</div>
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    {[1, 2, 3, 4, 5].map((value) => (
+                      <button
+                        key={value}
+                        type="button"
+                        onClick={() => setReviewStars(value)}
+                        style={{
+                          background: 'transparent',
+                          border: 'none',
+                          cursor: 'pointer',
+                          fontSize: 28,
+                          lineHeight: 1,
+                          color: value <= reviewStars ? 'var(--yellow)' : 'rgba(0,0,0,0.2)',
+                        }}
+                      >
+                        {value <= reviewStars ? '★' : '☆'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="form-group" style={{ marginTop: 8 }}>
+                  <label>Review</label>
+                  <textarea
+                    value={reviewText}
+                    onChange={(e) => setReviewText(e.target.value)}
+                    placeholder="Share your experience with UDrive..."
+                    rows={5}
+                    style={{ width: '100%', minHeight: 120, borderRadius: 4, border: '1px solid var(--border)', padding: 14, fontSize: 15, resize: 'vertical' }}
+                  />
+                </div>
+                {reviewStatus && (
+                  <p style={{ color: reviewStatus.includes('Thanks') ? 'var(--green)' : 'var(--red)', margin: 0 }}>{reviewStatus}</p>
+                )}
+                <button type="submit" className="nav-cta" style={{ width: 'fit-content', padding: '12px 24px' }}>
+                  Submit Review
+                </button>
+              </form>
             </div>
           </div>
         </section>
