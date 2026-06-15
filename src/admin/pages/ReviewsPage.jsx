@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getPendingReviews, approveReview, rejectReview } from '../../services/reviewService.js';
+import { getAverageRating, getPendingReviews, approveReview, rejectReview } from '../../services/reviewService.js';
 import { getSectionContent, updateSectionContent } from '../../services/siteContentService.js';
 
 export default function ReviewsPage() {
@@ -78,6 +78,14 @@ export default function ReviewsPage() {
   const handleSaveTestimonialsListContent = async () => {
     try {
       await updateSectionContent('homepageTestimonialsList', testimonialsList);
+      const averageRating = await getAverageRating();
+      const homepageStats = await getSectionContent('homepageStats');
+      if (homepageStats && Array.isArray(homepageStats.items)) {
+        const updatedStats = homepageStats.items.map((item) => (
+          item.label === 'Average Rating' ? { ...item, target: averageRating } : item
+        ));
+        await updateSectionContent('homepageStats', { items: updatedStats });
+      }
       setTestimonialsSaveMsg('Testimonials saved successfully!');
     } catch (error) {
       console.error('[ReviewsPage] save testimonials error:', error);
@@ -216,11 +224,12 @@ export default function ReviewsPage() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
                       <input
                         type="number"
-                        min={1}
-                        max={5}
+                        min="1"
+                        max="5"
+                        step="0.5"
                         value={t.stars}
                         onChange={(e) => {
-                          const v = Math.max(1, Math.min(5, Number(e.target.value) || 1));
+                          const v = parseFloat(e.target.value) || 1;
                           const copy = { ...testimonialsList };
                           copy.items = copy.items.map((x, i) => i === idx ? { ...x, stars: v } : x);
                           setTestimonialsList(copy);
@@ -228,7 +237,12 @@ export default function ReviewsPage() {
                         style={{ width: 72, padding: '10px 12px', borderRadius: 8, border: '1px solid #ddd', background: '#fafafa' }}
                       />
                       <span style={{ color: '#f0c000', fontSize: 18, letterSpacing: 1 }}>
-                        {'★'.repeat(t.stars || 0)}{'☆'.repeat(5 - (t.stars || 0))}
+                        {(() => {
+                          const fullStars = Math.floor(t.stars || 0);
+                          const hasHalf = (t.stars || 0) % 1 !== 0;
+                          const emptyStars = hasHalf ? 5 - fullStars - 1 : 5 - fullStars;
+                          return '★'.repeat(fullStars) + (hasHalf ? '⯨' : '') + '☆'.repeat(emptyStars);
+                        })()}
                       </span>
                     </div>
                   </div>

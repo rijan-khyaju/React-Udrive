@@ -764,12 +764,18 @@ export default function SettingsPage() {
                         max={it.suffix === '★' ? 5 : undefined}
                         step={it.suffix === '★' ? 0.1 : undefined}
                         value={it.target}
+                        disabled={it.label === 'Average Rating'}
                         onChange={(e) => {
                           const copy = { ...homepageStats };
                           copy.items = copy.items.map((x, i) => i === idx ? { ...x, target: Number(e.target.value) } : x);
                           setHomepageStats(copy);
                         }}
                       />
+                      {it.label === 'Average Rating' && (
+                        <p style={{ margin: '8px 0 0', fontSize: 13, color: '#555' }}>
+                          ⚡ This value is now auto-calculated from approved reviews. Manual edits here will be overridden.
+                        </p>
+                      )}
                     </div>
                     <div style={{ flex: '0 0 80px' }}>
                       <label>Suffix</label>

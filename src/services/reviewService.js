@@ -30,6 +30,36 @@ export async function getPendingReviews() {
   return snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }));
 }
 
+export async function getAverageRating() {
+  if (!db) {
+    throw new Error('Firestore is not configured');
+  }
+
+  const reviewsRef = collection(db, 'reviews');
+  const approvedQuery = query(reviewsRef, where('status', '==', 'Approved'));
+  const snapshot = await getDocs(approvedQuery);
+
+  const reviewRatings = snapshot.docs
+    .map((docSnap) => Number(docSnap.data()?.stars))
+    .filter((value) => !Number.isNaN(value) && value >= 0);
+
+  const manualContent = await getSectionContent('homepageTestimonialsList');
+  const manualRatings = Array.isArray(manualContent?.items)
+    ? manualContent.items
+        .map((item) => Number(item?.stars))
+        .filter((value) => !Number.isNaN(value) && value >= 0)
+    : [];
+
+  const allRatings = [...reviewRatings, ...manualRatings];
+
+  if (allRatings.length === 0) {
+    return 0;
+  }
+
+  const total = allRatings.reduce((sum, value) => sum + value, 0);
+  return Math.round((total / allRatings.length) * 10) / 10;
+}
+
 export async function approveReview(review) {
   if (!db) {
     throw new Error('Firestore is not configured');

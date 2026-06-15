@@ -3,6 +3,7 @@ import { collection, getDocs } from 'firebase/firestore';
 import { db, isFirebaseConfigured } from '../firebase/firebaseConfig.js';
 import CourseCard from '../components/CourseCard';
 import usePublicCourses from '../hooks/usePublicCourses';
+import { getAverageRating } from '../services/reviewService.js';
 import { getHeroContent, getSectionContent } from '../services/siteContentService.js';
 import { testimonials, whyUs } from '../data';
 
@@ -181,8 +182,12 @@ export default function HomePage({ setPage }) {
     async function loadHomepageStatsContent() {
       try {
         const content = await getSectionContent('homepageStats');
+        const averageRating = await getAverageRating();
         if (content && Array.isArray(content.items)) {
-          setHomepageStatsData(content);
+          const statsWithAverage = content.items.map((item) => (
+            item.label === 'Average Rating' ? { ...item, target: averageRating } : item
+          ));
+          setHomepageStatsData({ items: statsWithAverage });
         }
       } catch (error) {
         console.error('[HomePage] loadHomepageStatsContent error:', error);
