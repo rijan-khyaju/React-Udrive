@@ -6,45 +6,66 @@ import usePublicCourses from '../hooks/usePublicCourses';
 import { getHeroContent, getSectionContent } from '../services/siteContentService.js';
 import { testimonials, whyUs } from '../data';
 
-function useCountUp(target, duration = 2000, active = false) {
-  const [val, setVal] = useState(0);
+function useCountUpList(targets = [], durations = [], active = false) {
+  const [values, setValues] = useState(() => targets.map(() => 0));
   useEffect(() => {
     if (!active) return;
+    const durArray = targets.map((_, i) => (Array.isArray(durations) && durations[i] ? durations[i] : 1400));
     let start = null;
+    let raf = null;
     const step = (ts) => {
       if (!start) start = ts;
-      const p = Math.min((ts - start) / duration, 1);
-      setVal(Math.floor(p * target));
-      if (p < 1) requestAnimationFrame(step);
+      const next = targets.map((t, i) => {
+        const d = durArray[i] || 1400;
+        const p = Math.min((ts - start) / d, 1);
+        return t * p;
+      });
+      setValues(next);
+      const allDone = targets.every((t, i) => (ts - start) >= (durArray[i] || 1400));
+      if (!allDone) raf = requestAnimationFrame(step);
     };
-    requestAnimationFrame(step);
-  }, [target, duration, active]);
-  return val;
+    raf = requestAnimationFrame(step);
+    return () => {
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, [JSON.stringify(targets), JSON.stringify(durations), active]);
+  return values;
 }
 
-function Stats({ active }) {
-  const s1 = useCountUp(8500, 1800, active);
-  const s2 = useCountUp(97, 1400, active);
-  const s3 = useCountUp(15, 1200, active);
-  const s4 = useCountUp(49, 1600, active);
+function Stats({ items = [], active }) {
+  // items: [{ target, suffix, decimals, label }]
+  const targets = items.map((it) => Number(it.target) || 0);
+  const durations = items.map((it, i) => {
+    // keep previous durations for first four to match original feel
+    const defaults = [1800, 1400, 1200, 1600];
+    return defaults[i] ?? 1400;
+  });
+  const values = useCountUpList(targets, durations, active);
   return (
     <div className="hero-stats">
-      {[
-        { val: s1 + '+', label: 'Students Trained' },
-        { val: s2 + '%', label: 'Pass Rate' },
-        { val: s3 + '+', label: 'Years Experience' },
-        { val: (s4 / 10).toFixed(1) + '★', label: 'Average Rating' },
-      ].map((s, i) => (
-        <div key={i}>
-          <div className="hero-stat-num">{s.val}</div>
-          <div className="hero-stat-label">{s.label}</div>
-        </div>
-      ))}
+      {items.map((it, i) => {
+        const raw = values[i] ?? 0;
+        const decimals = Number(it.decimals) || 0;
+        const display = decimals > 0 ? raw.toFixed(decimals) : Math.floor(raw).toString();
+        return (
+          <div key={i}>
+            <div className="hero-stat-num">{display}{it.suffix}</div>
+            <div className="hero-stat-label">{it.label}</div>
+          </div>
+        );
+      })}
     </div>
   );
 }
 
 const tickerItems = ['Basic Driving','Defensive Driving','License Prep','Night Driving','Refresher Course','Fleet Training','Basic Driving','Defensive Driving','License Prep','Night Driving','Refresher Course','Fleet Training'];
+
+const defaultStats = [
+  { target: 8500, suffix: '+', decimals: 0, label: 'Students Trained' },
+  { target: 97, suffix: '%', decimals: 0, label: 'Pass Rate' },
+  { target: 15, suffix: '+', decimals: 0, label: 'Years Experience' },
+  { target: 4.9, suffix: '★', decimals: 1, label: 'Average Rating' },
+];
 
 export default function HomePage({ setPage }) {
   const [statsActive, setStatsActive] = useState(false);
@@ -60,6 +81,8 @@ export default function HomePage({ setPage }) {
   const [testimonialsContent, setTestimonialsContent] = useState(null);
   const [testimonialsListData, setTestimonialsListData] = useState(null);
   const [aboutFeaturesData, setAboutFeaturesData] = useState(null);
+  const [homepageTickerData, setHomepageTickerData] = useState(null);
+  const [homepageStatsData, setHomepageStatsData] = useState(null);
 
   useEffect(() => {
     const timer = setTimeout(() => setStatsActive(true), 400);
@@ -144,6 +167,28 @@ export default function HomePage({ setPage }) {
       }
     }
 
+    async function loadHomepageTickerContent() {
+      try {
+        const content = await getSectionContent('homepageTicker');
+        if (content && Array.isArray(content.items)) {
+          setHomepageTickerData(content);
+        }
+      } catch (error) {
+        console.error('[HomePage] loadHomepageTickerContent error:', error);
+      }
+    }
+
+    async function loadHomepageStatsContent() {
+      try {
+        const content = await getSectionContent('homepageStats');
+        if (content && Array.isArray(content.items)) {
+          setHomepageStatsData(content);
+        }
+      } catch (error) {
+        console.error('[HomePage] loadHomepageStatsContent error:', error);
+      }
+    }
+
     loadHeroContent();
     loadAboutContent();
     loadWhyUsContent();
@@ -151,6 +196,8 @@ export default function HomePage({ setPage }) {
     loadTestimonialsContent();
     loadTestimonialsListContent();
     loadAboutFeaturesContent();
+    loadHomepageTickerContent();
+    loadHomepageStatsContent();
   }, []);
 
   useEffect(() => {
@@ -207,7 +254,7 @@ export default function HomePage({ setPage }) {
               <button className="btn btn-yellow" onClick={() => setPage('courses')}>Browse Courses →</button>
               <button className="btn btn-outline" onClick={() => setPage('booking')}>▶ Book Free Trial</button>
             </div>
-            <Stats active={statsActive} />
+            <Stats items={(homepageStatsData?.items ?? defaultStats)} active={statsActive} />
           </div>
         </div>
       </section>
@@ -215,7 +262,7 @@ export default function HomePage({ setPage }) {
       {/* TICKER */}
       <div className="ticker">
         <div className="ticker-inner">
-          {tickerItems.map((item, i) => (
+          {(homepageTickerData?.items ? [...homepageTickerData.items, ...homepageTickerData.items] : tickerItems).map((item, i) => (
             <span key={i} className="ticker-item">
               {item}
               <span className="ticker-dot" />

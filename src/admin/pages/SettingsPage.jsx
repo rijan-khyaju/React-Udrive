@@ -64,6 +64,13 @@ export default function SettingsPage() {
       { icon: '📱', text: 'Online Progress Tracking' },
     ],
   });
+  const [homepageTicker, setHomepageTicker] = useState({ items: ['Basic Driving', 'Defensive Driving', 'License Prep', 'Night Driving', 'Refresher Course', 'Fleet Training'] });
+  const [homepageStats, setHomepageStats] = useState({ items: [
+    { target: 8500, suffix: '+', decimals: 0, label: 'Students Trained' },
+    { target: 97, suffix: '%', decimals: 0, label: 'Pass Rate' },
+    { target: 15, suffix: '+', decimals: 0, label: 'Years Experience' },
+    { target: 4.9, suffix: '★', decimals: 1, label: 'Average Rating' },
+  ] });
 
   useEffect(() => {
     if (user) {
@@ -175,6 +182,28 @@ export default function SettingsPage() {
       }
     }
 
+    async function loadHomepageTicker() {
+      try {
+        const t = await getSectionContent('homepageTicker');
+        if (t && Array.isArray(t.items)) {
+          setHomepageTicker({ items: t.items });
+        }
+      } catch (error) {
+        console.error('[SettingsPage] loadHomepageTicker error:', error);
+      }
+    }
+
+    async function loadHomepageStats() {
+      try {
+        const s = await getSectionContent('homepageStats');
+        if (s && Array.isArray(s.items)) {
+          setHomepageStats({ items: s.items });
+        }
+      } catch (error) {
+        console.error('[SettingsPage] loadHomepageStats error:', error);
+      }
+    }
+
     async function loadTestimonialsListContent() {
       try {
         const l = await getSectionContent('homepageTestimonialsList');
@@ -193,6 +222,8 @@ export default function SettingsPage() {
     loadTestimonialsContent();
     loadAboutFeaturesContent();
     loadTestimonialsListContent();
+    loadHomepageTicker();
+    loadHomepageStats();
   }, []);
 
   const handleSaveProfile = async () => {
@@ -668,6 +699,134 @@ export default function SettingsPage() {
             </div>
           </form>
         </div>
+
+            <div className="admin-card settings-card">
+              <div className="admin-card-header">
+                <h3>Homepage Ticker</h3>
+                <span>Manage the scrolling ticker items</span>
+              </div>
+              <form className="settings-form" onSubmit={(e) => e.preventDefault()}>
+                {homepageTicker.items.map((it, idx) => (
+                  <div className="settings-form-row" key={idx} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <div style={{ flex: 1 }}>
+                      <label>Text</label>
+                      <input type="text" value={it} onChange={(e) => {
+                        const copy = { ...homepageTicker };
+                        copy.items = copy.items.map((x, i) => i === idx ? e.target.value : x);
+                        setHomepageTicker(copy);
+                      }} />
+                    </div>
+                    <div style={{ flex: '0 0 96px' }}>
+                      <label>&nbsp;</label>
+                      <button className="btn-primary" type="button" onClick={() => {
+                        const copy = { ...homepageTicker };
+                        copy.items = copy.items.filter((_, i) => i !== idx);
+                        setHomepageTicker(copy);
+                      }}>Remove</button>
+                    </div>
+                  </div>
+                ))}
+                <div className="settings-form-row">
+                  <button className="btn-primary" type="button" onClick={() => {
+                    setHomepageTicker((prev) => ({ items: [...prev.items, ''] }));
+                  }}>Add Item</button>
+                </div>
+                <div className="settings-actions">
+                  <button className="btn-primary" type="button" onClick={async () => {
+                    try {
+                      await updateSectionContent('homepageTicker', homepageTicker);
+                      setSaveStatus((c) => ({ ...c, features: 'Ticker saved successfully!' }));
+                    } catch (err) {
+                      setSaveStatus((c) => ({ ...c, features: 'Error saving ticker.' }));
+                    }
+                    setTimeout(() => setSaveStatus((c) => ({ ...c, features: '' })), 3000);
+                  }}>
+                    Save Ticker
+                  </button>
+                  {saveStatus.features && <span className="save-message">{saveStatus.features}</span>}
+                </div>
+              </form>
+            </div>
+
+            <div className="admin-card settings-card">
+              <div className="admin-card-header">
+                <h3>Homepage Hero Stats</h3>
+                <span>Manage the hero stat numbers</span>
+              </div>
+              <form className="settings-form" onSubmit={(e) => e.preventDefault()}>
+                {homepageStats.items.map((it, idx) => (
+                  <div className="settings-form-row" key={idx} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <div style={{ flex: '0 0 120px' }}>
+                      <label>Target</label>
+                      <input
+                        type="number"
+                        min={0}
+                        max={it.suffix === '★' ? 5 : undefined}
+                        step={it.suffix === '★' ? 0.1 : undefined}
+                        value={it.target}
+                        onChange={(e) => {
+                          const copy = { ...homepageStats };
+                          copy.items = copy.items.map((x, i) => i === idx ? { ...x, target: Number(e.target.value) } : x);
+                          setHomepageStats(copy);
+                        }}
+                      />
+                    </div>
+                    <div style={{ flex: '0 0 80px' }}>
+                      <label>Suffix</label>
+                      <input type="text" value={it.suffix} onChange={(e) => {
+                        const copy = { ...homepageStats };
+                        copy.items = copy.items.map((x, i) => i === idx ? { ...x, suffix: e.target.value } : x);
+                        setHomepageStats(copy);
+                      }} />
+                    </div>
+                    <div style={{ flex: '0 0 80px' }}>
+                      <label>Decimals</label>
+                      <input type="number" min={0} max={1} value={it.decimals} onChange={(e) => {
+                        const v = Math.max(0, Math.min(1, Number(e.target.value) || 0));
+                        const copy = { ...homepageStats };
+                        copy.items = copy.items.map((x, i) => i === idx ? { ...x, decimals: v } : x);
+                        setHomepageStats(copy);
+                      }} />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <label>Label</label>
+                      <input type="text" value={it.label} onChange={(e) => {
+                        const copy = { ...homepageStats };
+                        copy.items = copy.items.map((x, i) => i === idx ? { ...x, label: e.target.value } : x);
+                        setHomepageStats(copy);
+                      }} />
+                    </div>
+                    <div style={{ flex: '0 0 96px' }}>
+                      <label>&nbsp;</label>
+                      <button className="btn-primary" type="button" onClick={() => {
+                        const copy = { ...homepageStats };
+                        copy.items = copy.items.filter((_, i) => i !== idx);
+                        setHomepageStats(copy);
+                      }}>Remove</button>
+                    </div>
+                  </div>
+                ))}
+                <div className="settings-form-row">
+                  <button className="btn-primary" type="button" onClick={() => {
+                    setHomepageStats((prev) => ({ items: [...prev.items, { target: 0, suffix: '', decimals: 0, label: '' }] }));
+                  }}>Add Stat</button>
+                </div>
+                <div className="settings-actions">
+                  <button className="btn-primary" type="button" onClick={async () => {
+                    try {
+                      await updateSectionContent('homepageStats', homepageStats);
+                      setSaveStatus((c) => ({ ...c, features: 'Stats saved successfully!' }));
+                    } catch (err) {
+                      setSaveStatus((c) => ({ ...c, features: 'Error saving stats.' }));
+                    }
+                    setTimeout(() => setSaveStatus((c) => ({ ...c, features: '' })), 3000);
+                  }}>
+                    Save Stats
+                  </button>
+                  {saveStatus.features && <span className="save-message">{saveStatus.features}</span>}
+                </div>
+              </form>
+            </div>
 
         <div className="admin-card settings-card">
           <div className="admin-card-header">
