@@ -828,71 +828,7 @@ export default function SettingsPage() {
               </form>
             </div>
 
-        <div className="admin-card settings-card">
-          <div className="admin-card-header">
-            <h3>Homepage Testimonials</h3>
-            <span>Manage the testimonials cards list shown on the homepage</span>
-          </div>
-          <form className="settings-form" onSubmit={(e) => e.preventDefault()}>
-            {testimonialsList.items.map((t, idx) => (
-              <div className="settings-form-row" key={t.id || idx} style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-                <div style={{ flex: 1 }}>
-                  <label>Name</label>
-                  <input type="text" value={t.name} onChange={(e) => {
-                    const copy = { ...testimonialsList };
-                    copy.items = copy.items.map((x, i) => i === idx ? { ...x, name: e.target.value } : x);
-                    setTestimonialsList(copy);
-                  }} />
-                  <label>Role</label>
-                  <input type="text" value={t.role} onChange={(e) => {
-                    const copy = { ...testimonialsList };
-                    copy.items = copy.items.map((x, i) => i === idx ? { ...x, role: e.target.value } : x);
-                    setTestimonialsList(copy);
-                  }} />
-                  <label>Text</label>
-                  <textarea rows={3} value={t.text} onChange={(e) => {
-                    const copy = { ...testimonialsList };
-                    copy.items = copy.items.map((x, i) => i === idx ? { ...x, text: e.target.value } : x);
-                    setTestimonialsList(copy);
-                  }} />
-                </div>
-                <div style={{ flex: '0 0 160px' }}>
-                  <label>Stars (1-5)</label>
-                  <input type="number" min={1} max={5} value={t.stars} onChange={(e) => {
-                    const v = Math.max(1, Math.min(5, Number(e.target.value) || 1));
-                    const copy = { ...testimonialsList };
-                    copy.items = copy.items.map((x, i) => i === idx ? { ...x, stars: v } : x);
-                    setTestimonialsList(copy);
-                  }} />
-                  <label>Initials</label>
-                  <input type="text" value={t.initials} onChange={(e) => {
-                    const copy = { ...testimonialsList };
-                    copy.items = copy.items.map((x, i) => i === idx ? { ...x, initials: e.target.value } : x);
-                    setTestimonialsList(copy);
-                  }} />
-                  <div style={{ marginTop: 8 }}>
-                    <button className="btn-primary" type="button" onClick={() => {
-                      const copy = { ...testimonialsList };
-                      copy.items = copy.items.filter((_, i) => i !== idx);
-                      setTestimonialsList(copy);
-                    }}>Remove</button>
-                  </div>
-                </div>
-              </div>
-            ))}
-            <div className="settings-form-row">
-              <button className="btn-primary" type="button" onClick={() => {
-                setTestimonialsList((prev) => ({ items: [...prev.items, { id: Date.now(), name: '', role: '', text: '', stars: 5, initials: '' }] }));
-              }}>Add Testimonial</button>
-            </div>
-            <div className="settings-actions">
-              <button className="btn-primary" type="button" onClick={handleSaveTestimonialsListContent}>
-                Save Testimonials
-              </button>
-              {saveStatus.testimonials && <span className="save-message">{saveStatus.testimonials}</span>}
-            </div>
-          </form>
-        </div>
+        {/* Homepage Testimonials card removed — moved to ReviewsPage */}
         <div className="admin-card settings-card">
           <div className="admin-card-header">
             <h3>Homepage Why Us Content</h3>

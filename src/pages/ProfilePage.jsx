@@ -19,6 +19,7 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [reviewText, setReviewText] = useState('');
   const [reviewStars, setReviewStars] = useState(0);
+  const [hoverStars, setHoverStars] = useState(0);
   const [reviewStatus, setReviewStatus] = useState('');
   const navigate = useNavigate();
 
@@ -151,6 +152,21 @@ export default function ProfilePage() {
       console.error('[ProfilePage] handleReviewSubmit:', err);
       setReviewStatus('Unable to submit review. Please try again later.');
     }
+  };
+
+  const getRatingLabel = (value) => {
+    const labels = {
+      1: 'Poor',
+      1.5: 'Poor+',
+      2: 'Fair',
+      2.5: 'Fair+',
+      3: 'Good',
+      3.5: 'Very Good',
+      4: 'Great',
+      4.5: 'Excellent',
+      5: 'Outstanding!',
+    };
+    return labels[value] || '';
   };
 
   const initials = profileData.name
@@ -311,29 +327,89 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            <div className="profile-card" style={{ marginTop: 16 }}>
+            <div className="profile-card" style={{ marginTop: 16, background: '#f8f8f8', borderRadius: 12, padding: 20, boxShadow: '0 16px 32px rgba(0, 0, 0, 0.06)' }}>
               <h2 className="booking-form-title">Leave a Review</h2>
-              <form onSubmit={handleReviewSubmit} style={{ display: 'grid', gap: 16, marginTop: 12 }}>
-                <div>
+              <form onSubmit={handleReviewSubmit} style={{ display: 'grid', gap: 20, marginTop: 12 }}>
+                <div style={{ display: 'grid', gap: 16 }}>
                   <div className="profile-label" style={{ marginBottom: 8 }}>Rating</div>
-                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                    {[1, 2, 3, 4, 5].map((value) => (
-                      <button
-                        key={value}
-                        type="button"
-                        onClick={() => setReviewStars(value)}
-                        style={{
-                          background: 'transparent',
-                          border: 'none',
-                          cursor: 'pointer',
-                          fontSize: 28,
-                          lineHeight: 1,
-                          color: value <= reviewStars ? 'var(--yellow)' : 'rgba(0,0,0,0.2)',
-                        }}
-                      >
-                        {value <= reviewStars ? '★' : '☆'}
-                      </button>
-                    ))}
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center', justifyContent: 'flex-start' }}>
+                    {[1, 2, 3, 4, 5].map((value) => {
+                      const filledStars = hoverStars || reviewStars;
+                      const diff = filledStars - value;
+                      const isFull = diff >= 0;
+                      const isHalf = diff === -0.5;
+                      const leftHalfValue = value === 1 ? 1 : value - 0.5;
+
+                      return (
+                        <button
+                          key={value}
+                          type="button"
+                          onClick={(e) => {
+                            const rect = e.currentTarget.getBoundingClientRect();
+                            const x = e.clientX - rect.left;
+                            const newValue = x < rect.width / 2 ? leftHalfValue : value;
+                            setReviewStars(newValue);
+                          }}
+                          onMouseMove={(e) => {
+                            const rect = e.currentTarget.getBoundingClientRect();
+                            const x = e.clientX - rect.left;
+                            const preview = x < rect.width / 2 ? leftHalfValue : value;
+                            setHoverStars(preview);
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.transform = 'scale(1.2)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.transform = 'scale(1)';
+                            setHoverStars(0);
+                          }}
+                          style={{
+                            background: 'transparent',
+                            border: 'none',
+                            cursor: 'pointer',
+                            fontSize: 44,
+                            lineHeight: 1,
+                            width: 44,
+                            height: 44,
+                            padding: 0,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transform: 'scale(1)',
+                            transition: 'transform 0.2s ease, color 0.2s ease',
+                          }}
+                        >
+                          <span style={{ position: 'relative', display: 'inline-block', width: 36, height: 44 }}>
+                            <span style={{ color: '#e0e0e0', position: 'absolute', top: 0, left: 0 }}>{'★'}</span>
+                            {(isFull || isHalf) && (
+                              <span
+                                style={{
+                                  color: '#f0c000',
+                                  position: 'absolute',
+                                  top: 0,
+                                  left: 0,
+                                  width: isHalf ? '50%' : '100%',
+                                  overflow: 'hidden',
+                                }}
+                              >
+                                {'★'}
+                              </span>
+                            )}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center' }}>
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: '#f0c000', color: '#000', fontWeight: 700, borderRadius: 999, padding: '8px 14px', fontSize: 14 }}>
+                      {reviewStars > 0 ? getRatingLabel(reviewStars) : 'Tap a star to rate your experience'}
+                    </div>
+                    {reviewStars > 0 && (
+                      <span style={{ color: '#111', fontWeight: 700, fontSize: 14 }}>{`${reviewStars.toFixed(reviewStars % 1 === 0 ? 0 : 1)} / 5`}</span>
+                    )}
+                  </div>
+                  <div style={{ color: '#555', fontSize: 14 }}>
+                    {reviewStars > 0 ? `You rated this ${reviewStars.toFixed(reviewStars % 1 === 0 ? 0 : 1)} out of 5` : 'Tap a star to rate your experience'}
                   </div>
                 </div>
                 <div className="form-group" style={{ marginTop: 8 }}>
@@ -349,7 +425,26 @@ export default function ProfilePage() {
                 {reviewStatus && (
                   <p style={{ color: reviewStatus.includes('Thanks') ? 'var(--green)' : 'var(--red)', margin: 0 }}>{reviewStatus}</p>
                 )}
-                <button type="submit" className="nav-cta" style={{ width: 'fit-content', padding: '12px 24px' }}>
+                <button
+                  type="submit"
+                  className="nav-cta"
+                  style={{
+                    width: 'fit-content',
+                    padding: '12px 24px',
+                    background: '#f0c000',
+                    color: '#000',
+                    fontWeight: 700,
+                    transition: 'transform 0.2s ease, filter 0.2s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.filter = 'brightness(0.95)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.filter = 'none';
+                  }}
+                >
                   Submit Review
                 </button>
               </form>
