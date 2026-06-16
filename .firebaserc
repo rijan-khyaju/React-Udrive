@@ -1,0 +1,15 @@
+{
+  "projects": {
+    "default": "udrive-30ed6"
+  },
+  "targets": {
+    "udrive-30ed6": {
+      "hosting": {
+        "apexdrive": [
+          "apexdrive"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}
