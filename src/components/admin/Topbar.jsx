@@ -11,13 +11,13 @@ export default function Topbar({ title, onMenu }) {
         </button>
         <div>
           <div className="page-title">{title}</div>
-          <div className="page-subtitle">Manage UDrive operations with speed and clarity.</div>
+          <div className="page-subtitle">Manage ApexDrive operations with speed and clarity.</div>
         </div>
       </div>
 
       <div className="topbar-right">
         <div className="topbar-search">
-          <input type="search" placeholder="Search UDrive" aria-label="Search" />
+          <input type="search" placeholder="Search ApexDrive" aria-label="Search" />
           <span className="search-icon">🔍</span>
         </div>
         <button className="icon-btn topbar-notification" aria-label="Notifications">🔔</button>

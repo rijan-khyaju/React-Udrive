@@ -299,7 +299,7 @@ export default function HomePage({ setPage }) {
                 {aboutContent?.titleMain ?? 'A Perfect Driving School With'} <span>{aboutContent?.titleAccent ?? 'Expert Instructors'}</span>
               </h2>
               <p style={{ marginTop: 20 }}>
-                {aboutContent?.paragraph1 ?? "UDrive was founded with one goal: to make Nepal's roads safer by training confident, responsible drivers. With 15+ years of experience, we've become the valley's most trusted driving school."}
+                {aboutContent?.paragraph1 ?? "ApexDrive was founded with one goal: to make Nepal's roads safer by training confident, responsible drivers. With 15+ years of experience, we've become the valley's most trusted driving school."}
               </p>
               <p>
                 {aboutContent?.paragraph2 ?? "Our government-certified instructors take a patient, structured approach — no rushing, no pressure. Just clear teaching in well-maintained dual-control vehicles."}
@@ -386,7 +386,7 @@ export default function HomePage({ setPage }) {
       <section className="why">
         <div className="container">
           <div className="why-header">
-            <span className="section-label">{whyUsContent?.sectionLabel ?? 'Why Choose UDrive'}</span>
+            <span className="section-label">{whyUsContent?.sectionLabel ?? 'Why Choose ApexDrive'}</span>
             <h2 className="section-title" style={{ color: 'var(--white)' }}>
               {whyUsContent?.titleMain ?? 'Why Students'} <span>{whyUsContent?.titleAccent ?? 'Trust Us'}</span>
             </h2>
@@ -444,8 +444,8 @@ export default function HomePage({ setPage }) {
                 {ctaContent?.titleLine2 ?? 'Driving License?'}
               </h2>
               <p className="cta-banner-sub">
-                {ctaContent?.subtitle ?? 'Join 8,500+ students who trusted UDrive. First lesson is free.'}
-              </p>
+                  {ctaContent?.subtitle ?? 'Join 8,500+ students who trusted ApexDrive. First lesson is free.'}
+                </p>
             </div>
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
               <button className="btn btn-dark" onClick={() => setPage('booking')}>

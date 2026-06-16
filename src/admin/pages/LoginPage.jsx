@@ -42,9 +42,9 @@ const [email, setEmail] = useState('');
     <div className="login-page">
       <div className="login-card">
         <div className="login-branding">
-          <div className="brand-mark">UD</div>
+          <div className="brand-mark">AD</div>
           <div>
-            <h2>UDrive Admin</h2>
+            <h2>ApexDrive Admin</h2>
             <p>Secure access to the admin console.</p>
           </div>
         </div>

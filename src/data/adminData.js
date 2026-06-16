@@ -71,7 +71,7 @@ export const reportCards = [
 ];
 
 export const settingsProfile = {
-  name: 'UDrive Admin',
+  name: 'ApexDrive Admin',
   email: 'admin@udrive.com.np',
   phone: '+977-9841-000000',
   location: 'Kathmandu, Nepal',

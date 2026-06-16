@@ -52,8 +52,8 @@ export default function Navbar({ page, setPage }) {
         <div className="container">
           <div className="navbar-inner">
             <div className="nav-logo" onClick={() => go('home')}>
-              <div className="nav-logo-icon">U</div>
-              <div className="nav-logo-text">U<span>Drive</span></div>
+              <div className="nav-logo-icon">A</div>
+              <div className="nav-logo-text">Apex<span>Drive</span></div>
             </div>
             <div className="nav-links">
               {links.map((l) => (

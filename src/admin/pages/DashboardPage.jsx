@@ -151,7 +151,7 @@ export default function DashboardPage() {
       <div className="dashboard-header">
         <div>
           <p className="dashboard-welcome">Welcome back, {user?.displayName || 'Admin'}</p>
-          <p className="dashboard-copy">Your UDrive dashboard overview for the latest activity.</p>
+          <p className="dashboard-copy">Your ApexDrive dashboard overview for the latest activity.</p>
         </div>
       </div>
 

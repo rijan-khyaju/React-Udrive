@@ -12,6 +12,8 @@ export default function AuthPage({ initialTab = 'login' }) {
   const [errors, setErrors] = useState({});
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showSignupPassword, setShowSignupPassword] = useState(false);
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
 
@@ -79,8 +81,8 @@ export default function AuthPage({ initialTab = 'login' }) {
       <section style={{ background: 'var(--dark)', padding: '64px 0 56px', borderBottom: '3px solid var(--yellow)' }}>
         <div className="container">
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '32px' }}>
-            <div style={{ width: '42px', height: '42px', background: 'var(--yellow)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-display)', fontSize: '22px', fontWeight: 900, color: 'var(--black)' }}>U</div>
-            <div style={{ fontFamily: 'var(--font-display)', fontSize: '24px', fontWeight: 900, color: 'var(--white)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>U<span style={{ color: 'var(--yellow)' }}>Drive</span></div>
+            <div style={{ width: '42px', height: '42px', background: 'var(--yellow)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-display)', fontSize: '22px', fontWeight: 900, color: 'var(--black)' }}>A</div>
+            <div style={{ fontFamily: 'var(--font-display)', fontSize: '24px', fontWeight: 900, color: 'var(--white)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Apex<span style={{ color: 'var(--yellow)' }}>Drive</span></div>
           </div>
           <h1 className="section-title" style={{ color: 'var(--white)', marginTop: 0 }}>
             {tab === 'signup' ? 'Create Account' : 'Welcome Back'}
@@ -98,11 +100,11 @@ export default function AuthPage({ initialTab = 'login' }) {
           <div className="auth-card">
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '28px' }}>
               <div style={{ width: '44px', height: '44px', background: 'var(--yellow)', borderRadius: '50%', display: 'grid', placeItems: 'center', color: 'var(--black)', fontFamily: 'var(--font-display)', fontSize: '22px', fontWeight: 900 }}>
-                U
+                A
               </div>
               <div>
                 <div style={{ fontFamily: 'var(--font-display)', fontSize: '22px', fontWeight: 900, color: 'var(--dark)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                  U<span style={{ color: 'var(--yellow)' }}>Drive</span>
+                  Apex<span style={{ color: 'var(--yellow)' }}>Drive</span>
                 </div>
                 <p style={{ color: 'var(--gray)', marginTop: 6, fontSize: 14 }}>Driving lessons, bookings, and student support in one place.</p>
               </div>
@@ -156,14 +158,25 @@ export default function AuthPage({ initialTab = 'login' }) {
 
               <div className="form-group">
                 <label>Password *</label>
-                <input
-                  name="password"
-                  type="password"
-                  value={form.password}
-                  onChange={handleChange}
-                  placeholder="Enter a secure password"
-                  autoComplete={tab === 'signup' ? 'new-password' : 'current-password'}
-                />
+                <div style={{ position: 'relative', width: '100%' }}>
+                  <input
+                    name="password"
+                    type={tab === 'signup' ? (showSignupPassword ? 'text' : 'password') : (showPassword ? 'text' : 'password')}
+                    value={form.password}
+                    onChange={handleChange}
+                    placeholder="Enter a secure password"
+                    autoComplete={tab === 'signup' ? 'new-password' : 'current-password'}
+                    style={{ width: '100%', paddingRight: 60 }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => (tab === 'signup' ? setShowSignupPassword((s) => !s) : setShowPassword((s) => !s))}
+                    style={{ background: 'none', border: 'none', color: '#f0c000', fontSize: 13, fontWeight: 700, letterSpacing: '0.05em', position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', cursor: 'pointer' }}
+                    aria-label={tab === 'signup' ? (showSignupPassword ? 'Hide password' : 'Show password') : (showPassword ? 'Hide password' : 'Show password')}
+                  >
+                    {tab === 'signup' ? (showSignupPassword ? 'Hide' : 'Show') : (showPassword ? 'Hide' : 'Show')}
+                  </button>
+                </div>
                 {errors.password && <div style={{ color: '#d14343', fontSize: 13 }}>{errors.password}</div>}
               </div>
 

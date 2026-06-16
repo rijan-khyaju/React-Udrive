@@ -417,7 +417,7 @@ export default function ProfilePage() {
                   <textarea
                     value={reviewText}
                     onChange={(e) => setReviewText(e.target.value)}
-                    placeholder="Share your experience with UDrive..."
+                    placeholder="Share your experience with ApexDrive..."
                     rows={5}
                     style={{ width: '100%', minHeight: 120, borderRadius: 4, border: '1px solid var(--border)', padding: 14, fontSize: 15, resize: 'vertical' }}
                   />

@@ -32,19 +32,19 @@ export default function SettingsPage() {
     sectionLabel: 'Who We Are',
     titleMain: 'A Perfect Driving School With',
     titleAccent: 'Expert Instructors',
-    paragraph1: "UDrive was founded with one goal: to make Nepal's roads safer by training confident, responsible drivers. With 15+ years of experience, we've become the valley's most trusted driving school.",
+    paragraph1: "ApexDrive was founded with one goal: to make Nepal's roads safer by training confident, responsible drivers. With 15+ years of experience, we've become the valley's most trusted driving school.",
     paragraph2: "Our government-certified instructors take a patient, structured approach — no rushing, no pressure. Just clear teaching in well-maintained dual-control vehicles.",
     buttonText: 'Book a Free Trial',
   });
   const [whyUsContent, setWhyUsContent] = useState({
-    sectionLabel: 'Why Choose UDrive',
+    sectionLabel: 'Why Choose ApexDrive',
     titleMain: 'Why Students',
     titleAccent: 'Trust Us',
   });
   const [ctaContent, setCtaContent] = useState({
     titleLine1: 'Ready to Get Your',
     titleLine2: 'Driving License?',
-    subtitle: 'Join 8,500+ students who trusted UDrive. First lesson is free.',
+    subtitle: 'Join 8,500+ students who trusted ApexDrive. First lesson is free.',
     button1Text: 'Book Free Trial',
     button2Text: 'View Courses',
   });
@@ -114,7 +114,7 @@ export default function SettingsPage() {
             sectionLabel: about.sectionLabel ?? 'Who We Are',
             titleMain: about.titleMain ?? 'A Perfect Driving School With',
             titleAccent: about.titleAccent ?? 'Expert Instructors',
-            paragraph1: about.paragraph1 ?? "UDrive was founded with one goal: to make Nepal's roads safer by training confident, responsible drivers. With 15+ years of experience, we've become the valley's most trusted driving school.",
+            paragraph1: about.paragraph1 ?? "ApexDrive was founded with one goal: to make Nepal's roads safer by training confident, responsible drivers. With 15+ years of experience, we've become the valley's most trusted driving school.",
             paragraph2: about.paragraph2 ?? "Our government-certified instructors take a patient, structured approach — no rushing, no pressure. Just clear teaching in well-maintained dual-control vehicles.",
             buttonText: about.buttonText ?? 'Book a Free Trial',
           });
@@ -128,8 +128,8 @@ export default function SettingsPage() {
       try {
         const whyUs = await getSectionContent('homepageWhyUs');
         if (whyUs) {
-          setWhyUsContent({
-            sectionLabel: whyUs.sectionLabel ?? 'Why Choose UDrive',
+            setWhyUsContent({
+            sectionLabel: whyUs.sectionLabel ?? 'Why Choose ApexDrive',
             titleMain: whyUs.titleMain ?? 'Why Students',
             titleAccent: whyUs.titleAccent ?? 'Trust Us',
           });
@@ -146,7 +146,7 @@ export default function SettingsPage() {
           setCtaContent({
             titleLine1: cta.titleLine1 ?? 'Ready to Get Your',
             titleLine2: cta.titleLine2 ?? 'Driving License?',
-            subtitle: cta.subtitle ?? 'Join 8,500+ students who trusted UDrive. First lesson is free.',
+            subtitle: cta.subtitle ?? 'Join 8,500+ students who trusted ApexDrive. First lesson is free.',
             button1Text: cta.button1Text ?? 'Book Free Trial',
             button2Text: cta.button2Text ?? 'View Courses',
           });

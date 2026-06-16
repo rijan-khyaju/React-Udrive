@@ -15,9 +15,9 @@ export default function Sidebar({ open, setOpen }) {
   return (
     <aside className={`sidebar ${open ? 'open' : ''}`}>
       <div className="sidebar-brand">
-        <div className="brand-icon">U</div>
+        <div className="brand-icon">A</div>
         <div>
-          <div className="brand-title">UDrive</div>
+          <div className="brand-title">ApexDrive</div>
           <div className="brand-subtitle">Admin Panel</div>
         </div>
       </div>

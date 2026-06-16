@@ -5,8 +5,8 @@ export default function Footer({ setPage }) {
         <div className="footer-grid">
           <div>
             <div className="nav-logo" style={{ cursor: 'pointer' }} onClick={() => setPage('home')}>
-              <div className="nav-logo-icon">U</div>
-              <div className="nav-logo-text">U<span>Drive</span></div>
+              <div className="nav-logo-icon">A</div>
+              <div className="nav-logo-text">Apex<span>Drive</span></div>
             </div>
             <p className="footer-brand-text">
               Nepal's most trusted driving school since 2006. We've trained over 8,500 confident drivers across Kathmandu Valley.
@@ -54,7 +54,7 @@ export default function Footer({ setPage }) {
           </div>
         </div>
         <div className="footer-bottom">
-          <p className="footer-copy">© 2025 <span>UDrive</span> Driving School. All rights reserved.</p>
+          <p className="footer-copy">© 2025 <span>ApexDrive</span> Driving School. All rights reserved.</p>
           <p className="footer-copy">Made with ❤️ in Kathmandu</p>
         </div>
       </div>

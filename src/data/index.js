@@ -64,7 +64,7 @@ export const courses = [
 export const testimonials = [
   {
     id: 1,
-    text: 'I was really nervous about learning to drive at 28, but the instructors at UDrive made everything so easy. Passed my test on the first attempt!',
+    text: 'I was really nervous about learning to drive at 28, but the instructors at ApexDrive made everything so easy. Passed my test on the first attempt!',
     name: 'Priya Shrestha',
     role: 'Passed, Oct 2024',
     initials: 'PS',
