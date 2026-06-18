@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { collection, getDocs } from 'firebase/firestore';
-import { db, isFirebaseConfigured } from '../firebase/firebaseConfig.js';
 import CourseCard from '../components/CourseCard';
 import usePublicCourses from '../hooks/usePublicCourses';
+import useStudentCount from '../hooks/useStudentCount';
 import { getAverageRating } from '../services/reviewService.js';
 import { getHeroContent, getSectionContent } from '../services/siteContentService.js';
 import { testimonials, whyUs } from '../data';
@@ -61,8 +60,8 @@ function Stats({ items = [], active }) {
 
 const tickerItems = ['Basic Driving','Defensive Driving','License Prep','Night Driving','Refresher Course','Fleet Training','Basic Driving','Defensive Driving','License Prep','Night Driving','Refresher Course','Fleet Training'];
 
-const defaultStats = [
-  { target: 8500, suffix: '+', decimals: 0, label: 'Students Trained' },
+const defaultStatsFallback = [
+  { target: 0, suffix: '+', decimals: 0, label: 'Students Trained' },
   { target: 97, suffix: '%', decimals: 0, label: 'Pass Rate' },
   { target: 15, suffix: '+', decimals: 0, label: 'Years Experience' },
   { target: 4.9, suffix: '★', decimals: 1, label: 'Average Rating' },
@@ -70,6 +69,7 @@ const defaultStats = [
 
 export default function HomePage({ setPage }) {
   const [statsActive, setStatsActive] = useState(false);
+  const { count: studentCount, error: studentCountError } = useStudentCount();
   const heroRef = useRef(null);
   const { courses, loading, error } = usePublicCourses();
   const [instructors, setInstructors] = useState([]);
@@ -89,6 +89,12 @@ export default function HomePage({ setPage }) {
     const timer = setTimeout(() => setStatsActive(true), 400);
     return () => clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    if (studentCountError) {
+      console.error('[HomePage] student count error:', studentCountError);
+    }
+  }, [studentCountError]);
 
   useEffect(() => {
     async function loadHeroContent() {
@@ -259,7 +265,11 @@ export default function HomePage({ setPage }) {
               <button className="btn btn-yellow" onClick={() => setPage('courses')}>Browse Courses →</button>
               <button className="btn btn-outline" onClick={() => setPage('booking')}>▶ Book Free Trial</button>
             </div>
-            <Stats items={(homepageStatsData?.items ?? defaultStats)} active={statsActive} />
+            <Stats items={(homepageStatsData?.items ?? defaultStatsFallback).map((item) => (
+              item.label === 'Students Trained'
+                ? { ...item, target: studentCount }
+                : item
+            ))} active={statsActive} />
           </div>
         </div>
       </section>
