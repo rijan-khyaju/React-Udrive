@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Modal from './Modal';
 
 const emptyInstructor = {
@@ -13,28 +13,49 @@ const emptyInstructor = {
 
 export default function InstructorModal({ open, mode, instructor, courses, formRef, onClose, onSubmit }) {
   const [form, setForm] = useState(emptyInstructor);
+  const [emailError, setEmailError] = useState('');
+  const modalTopRef = useRef(null);
   const isView = mode === 'view';
 
   useEffect(() => {
     if (open) {
       setForm(instructor ? { ...instructor } : emptyInstructor);
+      setEmailError('');
+      setTimeout(() => {
+        modalTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 50);
     }
   }, [open, instructor]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
+
+    if (name === 'phone') {
+      const cleaned = value.replace(/[^0-9+]/g, '');
+      setForm((prev) => ({ ...prev, phone: cleaned }));
+      return;
+    }
+
+    if (name === 'email') setEmailError('');
+
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = (event) => {
     event.preventDefault();
     if (!isView) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(form.email)) {
+        setEmailError('Please enter a valid email address (e.g. name@example.com)');
+        return;
+      }
       onSubmit(form);
     }
   };
 
   return (
     <Modal open={open} title={isView ? 'Instructor Details' : mode === 'edit' ? 'Edit Instructor' : 'Add Instructor'} onClose={onClose}>
+      <div ref={modalTopRef} />
       <form ref={formRef} className="instructor-form" onSubmit={handleSubmit}>
         <div className="instructor-form-row">
           <label htmlFor="name">Full Name</label>
@@ -44,11 +65,12 @@ export default function InstructorModal({ open, mode, instructor, courses, formR
         <div className="instructor-form-row">
           <label htmlFor="email">Email</label>
           <input id="email" name="email" type="email" value={form.email} onChange={handleChange} disabled={isView} required />
+          {emailError && <span style={{ color: 'red', fontSize: '0.8rem', marginTop: 4 }}>{emailError}</span>}
         </div>
 
         <div className="instructor-form-row">
           <label htmlFor="phone">Phone</label>
-          <input id="phone" name="phone" type="tel" value={form.phone} onChange={handleChange} disabled={isView} required />
+          <input id="phone" name="phone" type="tel" inputMode="numeric" value={form.phone} onChange={handleChange} disabled={isView} required />
         </div>
 
         <div className="instructor-form-row">
@@ -61,10 +83,10 @@ export default function InstructorModal({ open, mode, instructor, courses, formR
           <select id="assigned_course" name="assigned_course" value={form.assigned_course} onChange={handleChange} disabled={isView} required>
             <option value="">Select a course</option>
             {(courses || []).map((course) => (
-  <option key={course.id ?? course.course_id} value={course.title ?? course.name}>
-    {course.title ?? course.name}
-  </option>
-))}
+              <option key={course.id ?? course.course_id} value={course.title ?? course.name}>
+                {course.title ?? course.name}
+              </option>
+            ))}
           </select>
         </div>
 
